@@ -1,16 +1,16 @@
 /*
  */
 
-import { getBlocksFromTemplate } from './get-blocks-from-template';
+import { getBlocksFromTemplate } from "./get-blocks-from-template";
 import {
   findVariablePlaceholders,
   parseSpecialPlaceholders,
-} from './get-placeholders';
-import { parseDialogFromBlock } from './parse-dialog-from-block';
+} from "./get-placeholders";
+import { parseDialogFromBlock } from "./parse-dialog-from-block";
 import {
   standardBlockParsers,
   standardPlaceholderParsers,
-} from './standard-parsers';
+} from "./standard-parsers";
 import {
   BlockParser,
   ParsedBlock,
@@ -20,15 +20,15 @@ import {
   Message,
   Placeholder,
   Setter,
-} from './types';
+} from "./types";
 
-export * from './standard-parsers';
+export * from "./standard-parsers";
 
 /**
  * Removes comments from template string
  */
 const stripComments = (template: string): string => {
-  return template.replace(/{{!--[\s\S]*?--}}/g, '');
+  return template.replace(/{{!--[\s\S]*?--}}/g, "");
 };
 
 const mapStringsToBoolDict = (strings: string[]): Record<string, boolean> => {
@@ -40,13 +40,13 @@ const mapStringsToBoolDict = (strings: string[]): Record<string, boolean> => {
 
 const mapPlaceholderToSetter = (item: Placeholder): Setter => {
   if (item.arguments.length === 0) {
-    throw new Error('Setter has no arguments');
+    throw new Error("Setter has no arguments");
   }
 
   return {
     fullMatch: item.fullMatch,
     name: item.arguments[0].name,
-    value: item.arguments[0].value ?? '',
+    value: item.arguments[0].value ?? "",
   };
 };
 
@@ -54,18 +54,18 @@ export const extendChatMessages = (messages: Message[]): ParsedMessage[] => {
   const parsedMessages: ParsedMessage[] = [];
 
   for (const message of messages) {
-    const variables = findVariablePlaceholders(message.content ?? '');
+    const variables = findVariablePlaceholders(message.content ?? "");
     const specialPlaceholders = parseSpecialPlaceholders(
-      message.content ?? '',
+      message.content ?? "",
       standardPlaceholderParsers
     );
 
     parsedMessages.push({
       ...message,
       variables: mapStringsToBoolDict(variables),
-      placeholders: specialPlaceholders.filter(e => e.type !== 'set'),
+      placeholders: specialPlaceholders.filter((e) => e.type !== "set"),
       setters: specialPlaceholders
-        .filter(e => e.type === 'set')
+        .filter((e) => e.type === "set")
         .map(mapPlaceholderToSetter),
     });
   }
@@ -76,9 +76,9 @@ export const extendChatMessages = (messages: Message[]): ParsedMessage[] => {
 /**
  * Main function to parse a raw template
  */
-export const parseTemplate = async (
+export const parseTemplateRaw = async (
   template: string,
-  options: {
+  options?: {
     blockParsers?: BlockParser[];
     additionalBlockParsers?: BlockParser[];
     placeholderParsers?: PlaceholderParser[];
@@ -86,15 +86,15 @@ export const parseTemplate = async (
   }
 ): Promise<ParsedTemplate> => {
   // Define the parsers. Add additional parsers if provided
-  const blockParsers = options.blockParsers ?? [...standardBlockParsers];
-  if (options.additionalBlockParsers) {
+  const blockParsers = options?.blockParsers ?? [...standardBlockParsers];
+  if (options?.additionalBlockParsers) {
     blockParsers.push(...options.additionalBlockParsers);
   }
 
-  const placeholderParsers = options.placeholderParsers ?? [
+  const placeholderParsers = options?.placeholderParsers ?? [
     ...standardPlaceholderParsers,
   ];
-  if (options.additionalPlaceholderParsers) {
+  if (options?.additionalPlaceholderParsers) {
     placeholderParsers.push(...options.additionalPlaceholderParsers);
   }
 
@@ -102,33 +102,41 @@ export const parseTemplate = async (
   const templateWithoutComments = stripComments(template);
 
   // Get all blocks from template
-  const rawBlockDict = getBlocksFromTemplate(
+  const rawBlocks = getBlocksFromTemplate(
     templateWithoutComments,
     blockParsers
   );
 
-  const parsedBlocks: ParsedTemplate = {};
+  const parsedBlocks: ParsedBlock[] = [];
 
-  // Iterate over all block types
-  for (const type in rawBlockDict) {
-    const blocks = rawBlockDict[type];
-    parsedBlocks[type] = [];
+  // Iterate over all blocks
+  for (const block of rawBlocks) {
+    // Parse the Dialog
+    const dialog = parseDialogFromBlock(block);
 
-    // Iterate over all blocks
-    for (const block of blocks) {
-      // Parse the Dialog
-      const dialog = parseDialogFromBlock(block);
+    // Create the parsed block
+    const parsedBlock: ParsedBlock = {
+      type: block.type,
+      arguments: block.arguments,
+      messages: extendChatMessages(dialog),
+      order: block.order,
+    };
 
-      // Create the parsed block
-      const parsedBlock: ParsedBlock = {
-        type: block.type,
-        arguments: block.arguments,
-        messages: extendChatMessages(dialog),
-      };
-
-      parsedBlocks[type].push(parsedBlock);
-    }
+    parsedBlocks.push(parsedBlock);
   }
 
-  return parsedBlocks;
+  const parsedTemplate: ParsedTemplate = {
+    errors: [],
+    blocks: parsedBlocks
+      .filter((block) => block.type === "block" || block.type === "loop")
+      .sort((a, b) => a.order - b.order),
+    functions: parsedBlocks
+      .filter((block) => block.type === "function")
+      .sort((a, b) => a.order - b.order),
+    init: parsedBlocks
+      .filter((block) => block.type === "init")
+      .sort((a, b) => a.order - b.order),
+  };
+
+  return parsedTemplate;
 };

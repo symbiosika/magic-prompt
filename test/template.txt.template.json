@@ -1,0 +1,111 @@
+{
+  "errors": [],
+  "blocks": [
+    {
+      "type": "block",
+      "arguments": {},
+      "messages": [
+        {
+          "role": "user",
+          "content": "{{#call function=generate_summary}}",
+          "variables": {},
+          "placeholders": [],
+          "setters": []
+        }
+      ],
+      "order": 0
+    },
+    {
+      "type": "loop",
+      "arguments": {
+        "output": "final"
+      },
+      "messages": [
+        {
+          "role": "system",
+          "content": "Some text",
+          "variables": {},
+          "placeholders": [],
+          "setters": []
+        },
+        {
+          "role": "assistant",
+          "content": "Some more text\r\n{{some_variable}}",
+          "variables": {
+            "some_variable": true
+          },
+          "placeholders": [],
+          "setters": []
+        },
+        {
+          "role": "user",
+          "content": "{{user_input}}",
+          "variables": {
+            "user_input": true
+          },
+          "placeholders": [],
+          "setters": []
+        },
+        {
+          "role": "user",
+          "content": "{{#next condition_checker=check_if_user_finished condition=Ja}}",
+          "variables": {},
+          "placeholders": [],
+          "setters": []
+        }
+      ],
+      "order": 2
+    }
+  ],
+  "functions": [
+    {
+      "type": "function",
+      "arguments": {
+        "name": "generate_question",
+        "memory": "asked_questions",
+        "output": "actual_question"
+      },
+      "messages": [
+        {
+          "role": "system",
+          "content": "You will create random questions.",
+          "variables": {},
+          "placeholders": [],
+          "setters": []
+        },
+        {
+          "role": "user",
+          "content": "Create a question.\r\nYou have already asked these questions:\r\n{{asked_questions}}\r\n\r\nDon´t repeat yourself.",
+          "variables": {
+            "asked_questions": true
+          },
+          "placeholders": [],
+          "setters": []
+        }
+      ],
+      "order": 3
+    }
+  ],
+  "init": [
+    {
+      "type": "init",
+      "arguments": {},
+      "messages": [
+        {
+          "role": "user",
+          "content": "{{#set actual_position=0}}",
+          "variables": {},
+          "placeholders": [],
+          "setters": [
+            {
+              "fullMatch": "{{#set actual_position=0}}",
+              "name": "actual_position",
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "order": 1
+    }
+  ]
+}

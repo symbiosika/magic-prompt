@@ -1,0 +1,45 @@
+{{!-- 
+A Comment. This must be removed!
+--}}
+
+{{#function name=generate_question memory=asked_questions output=actual_question}}  
+{{#role=system}}
+You will create random questions.
+{{/role}}
+
+{{#role=user}}      
+Create a question.
+You have already asked these questions:
+{{asked_questions}}
+
+Don´t repeat yourself.
+{{/role}}
+{{/function}}
+
+{{#init}}
+  {{#set actual_position=0}}
+{{/init}}
+
+{{#block}}
+{{!--
+One more Comment
+--}}
+{{#call function=generate_summary}}
+{{/block}}
+
+{{#loop output=final}}  
+{{#role=system}}
+Some text
+{{/role}}
+
+{{#role=assistant}}
+Some more text
+{{some_variable}}
+{{/role}}
+
+{{#role=user}}
+{{user_input}}
+{{/role}}
+
+{{#next condition_checker=check_if_user_finished condition=Ja}}
+{{/loop}}

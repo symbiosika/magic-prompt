@@ -1,5 +1,5 @@
 export type Message = {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content?: string;
 };
 
@@ -7,7 +7,7 @@ export interface PlaceholderArgument {
   name: string;
   required: boolean;
   default?: string | number | boolean;
-  type?: 'string' | 'number' | 'boolean';
+  type?: "string" | "number" | "boolean";
   multiple?: boolean;
   value?: string | number | boolean;
 }
@@ -34,12 +34,14 @@ export type RawBlock = {
   type: string;
   content: string;
   arguments?: Record<string, string | number | boolean | undefined>;
+  order: number;
 };
 
 export type ParsedBlock = {
   type: string;
   arguments?: Record<string, string | number | boolean | undefined>;
   messages: ParsedMessage[];
+  order: number;
 };
 
 export type BlockParser = {
@@ -59,12 +61,21 @@ export type PlaceholderParser = {
     // a complex list of arguments for the placeholder
     name: string;
     required?: boolean;
-    type?: 'string' | 'number' | 'boolean';
+    type?: "string" | "number" | "boolean";
     multiple?: boolean;
     default?: string | number | boolean;
   }[];
 };
 
 export interface ParsedTemplate {
-  [blockType: string]: ParsedBlock[];
+  errors: string[];
+  functions?: ParsedBlock[];
+  blocks?: ParsedBlock[];
+  init?: ParsedBlock[];
 }
+
+export type ParsedFunction = {
+  name: string;
+  arguments: Record<string, string | number | boolean | undefined>;
+  messages: ParsedMessage[];
+};
