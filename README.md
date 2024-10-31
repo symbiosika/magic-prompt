@@ -80,7 +80,7 @@ you can hide that.
     {{/role}}
 {{/loop}}
 
-{{#block}}
+{{#block output=llm_checks,actual_question}}
     {{#role=assistant}}
         You will check give the user a count of valid answers ("Correct") and invalid answers ("Not correct").
     {{/role}}
@@ -90,6 +90,14 @@ you can hide that.
         {{llm_checks}}
     {{/role}}
 {{/block}}
+
+{{!--
+The last block "output" defines the variables that are given back to the user.
+--}}
+
+{{#batch variable=llm_checks offset=x increment=5}}
+increases on each call.
+
 ```
 
 {{#chat_history}}
