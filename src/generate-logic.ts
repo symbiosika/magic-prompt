@@ -5,7 +5,10 @@ import {
   ParsedFunction,
   BlockWithMessages,
   ParsedTemplateBlocks,
+  PlaceholderParser,
+  BlockParser,
 } from "./types";
+import { parseTemplateRaw } from "./generate-raw-blocks";
 
 // Helper function to check if a value is effectively undefined
 const isEffectivelyUndefined = (value: any): boolean => {
@@ -211,4 +214,22 @@ export const parseTemplateToBlocks = (
     functions,
     errors,
   };
+};
+
+/**
+ * Function to parse a template to blocks
+ */
+export const parseTemplate = async (
+  template: string,
+  options?: {
+    blockParsers?: BlockParser[];
+    additionalBlockParsers?: BlockParser[];
+    placeholderParsers?: PlaceholderParser[];
+    additionalPlaceholderParsers?: PlaceholderParser[];
+  }
+): Promise<ParsedTemplateBlocks> => {
+  const rawTemplate = await parseTemplateRaw(template, options);
+  const parsedTemplate = parseTemplateToBlocks(rawTemplate);
+
+  return parsedTemplate;
 };
