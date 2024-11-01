@@ -24,6 +24,7 @@ type UserChatResponse = {
     content: string;
   };
   meta: any;
+  finished?: boolean;
 };
 
 /**
@@ -62,13 +63,27 @@ export const blockLoop = async (
 
   // check if we are in progress inside a template
   const inProgressTemplate = session.state.useTemplate?.blockIndex ?? 0;
-  console.log("# Start at block", inProgressTemplate);
+  console.log(
+    "# Start at block",
+    session.state.useTemplate?.blockIndex,
+    inProgressTemplate
+  );
 
   let lastResponse: null | string = null;
-  console.log("# Last response", template.blocks);
+
+  // log a list of all blocks. only log the name
+  console.log(
+    "# All blocks",
+    template.blocks.map((b) => b.name)
+  );
 
   // iterate over blocks
   for (let x = inProgressTemplate; x < template.blocks.length; null) {
+    // set state
+    chatStore.set(chatId, { blockIndex: x });
+    console.log("# Set state to", x);
+
+    // get the block
     const block = template.blocks[x];
     console.log("# Execute block", block.name);
 
@@ -78,7 +93,7 @@ export const blockLoop = async (
     if (block.callback) {
       console.log("# triggered a callback");
       // set the pointer to the next block!
-      x++;
+      chatStore.set(chatId, { blockIndex: x + 1 });
       return <UserChatResponse>{
         chatId,
         message: {
@@ -90,6 +105,7 @@ export const blockLoop = async (
         meta: {
           variables: block.callback.returnVariables,
         },
+        finished: false,
       };
     }
 
@@ -161,6 +177,7 @@ export const blockLoop = async (
   }
 
   // the loop is finished. return the last response
+  console.log("# Loop is finished. Return last response");
   return <UserChatResponse>{
     chatId,
     message: {
@@ -168,6 +185,7 @@ export const blockLoop = async (
       content: lastResponse,
     },
     meta: {},
+    finished: true,
   };
 };
 
@@ -206,16 +224,16 @@ export const initChatFromUi = async (data: UserChatQuery) => {
   }
 };
 
-// start a new chat with the demo template
-initChatFromUi({
-  templateName: "demo",
-})
-  .then((result) => {
-    console.log("Chat ended with id", result.chatId);
-    console.log("Result", result.result);
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error("Error starting chat", error);
-    process.exit(1);
-  });
+// // start a new chat with the demo template
+// initChatFromUi({
+//   templateName: "demo",
+// })
+//   .then((result) => {
+//     console.log("Chat ended with id", result.chatId);
+//     console.log("Result", result.result);
+//     process.exit(0);
+//   })
+//   .catch((error) => {
+//     console.error("Error starting chat", error);
+//     process.exit(1);
+//   });

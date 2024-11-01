@@ -99,6 +99,9 @@ class ChatHistoryStore {
           (session as ChatSessionWithTemplate).state.useTemplate?.blockIndex ??
           0,
       };
+    if (set.blockIndex)
+      (session as ChatSessionWithTemplate).state.useTemplate.blockIndex =
+        set.blockIndex;
     session.lastUsedAt = new Date();
   }
 
