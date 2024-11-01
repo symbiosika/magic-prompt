@@ -24,6 +24,17 @@
       ]
     },
     {
+      "name": "CB5tL8JCbrr7tTzLt1P0u",
+      "messages": [],
+      "callback": {
+        "role": "assistant",
+        "contentVariable": "actual_question",
+        "returnVariables": [
+          "users_input"
+        ]
+      }
+    },
+    {
       "name": "question_loop",
       "next": "next_question",
       "allowManualSkip": true,
@@ -62,7 +73,7 @@
       ]
     },
     {
-      "name": "ZjbyZoSu2zUA_YFJxfGob",
+      "name": "IkaNwBue9wx1qsAJJ6ovX",
       "clearOnStart": true,
       "messages": [
         {
@@ -82,17 +93,6 @@
           "setters": []
         }
       ]
-    },
-    {
-      "name": "zMY8ptlbg4SETtRE8dakd",
-      "messages": [],
-      "callback": {
-        "role": "assistant",
-        "contentVariable": "actual_question",
-        "returnVariables": [
-          "users_input"
-        ]
-      }
     }
   ],
   "functions": {

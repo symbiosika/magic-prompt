@@ -108,6 +108,12 @@ class ChatHistoryStore {
     session.state.variables[key] = value;
   }
 
+  getVariable(chatId: string, key: string): VariableType {
+    const session = this.sessions.get(chatId);
+    if (!session) throw new Error("Session not found");
+    return session.state.variables[key];
+  }
+
   appendToMemory(chatId: string, memoryKey: string, value: VariableType): void {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");

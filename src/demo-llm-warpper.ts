@@ -12,7 +12,7 @@ export const getResponseFromOpenAi = async (
 ): Promise<string> => {
   console.log("chat with LLM", messages);
   // wait 2 seconds
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return "return from LLM " + nanoid(16);
 
   const completion = await openai.chat.completions.create({

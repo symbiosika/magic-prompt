@@ -9,6 +9,23 @@ export const getTemplate = async (_templateName: string) => {
   return template;
 };
 
+type UserChatQuery = {
+  chatId?: string;
+  userMessage?: string;
+  templateName?: string;
+  trigger?: UserTrigger;
+  usersVariables?: VariableDictionary;
+};
+
+type UserChatResponse = {
+  chatId: string;
+  message: {
+    role: "user" | "assistant";
+    content: string;
+  };
+  meta: any;
+};
+
 /**
  * Block executor
  * This function will execute a single block
@@ -47,9 +64,34 @@ export const blockLoop = async (
   const inProgressTemplate = session.state.useTemplate?.blockIndex ?? 0;
   console.log("# Start at block", inProgressTemplate);
 
+  let lastResponse: null | string = null;
+  console.log("# Last response", template.blocks);
+
   // iterate over blocks
   for (let x = inProgressTemplate; x < template.blocks.length; null) {
     const block = template.blocks[x];
+    console.log("# Execute block", block.name);
+
+    /**
+     * Check if we have a callback
+     */
+    if (block.callback) {
+      console.log("# triggered a callback");
+      // set the pointer to the next block!
+      x++;
+      return <UserChatResponse>{
+        chatId,
+        message: {
+          role: "assistant",
+          content: block.callback.contentVariable
+            ? chatStore.getVariable(chatId, block.callback.contentVariable)
+            : "",
+        },
+        meta: {
+          variables: block.callback.returnVariables,
+        },
+      };
+    }
 
     /**
      * Starting the block
@@ -68,6 +110,7 @@ export const blockLoop = async (
      * Talk to LLM
      */
     const response = await getResponseFromLlm(session, block, usersVariables);
+    lastResponse = response;
     // set output variables in state
     if (block.outputVariable) {
       chatStore.setVariable(chatId, block.outputVariable, response);
@@ -116,14 +159,16 @@ export const blockLoop = async (
       console.log("# Loop this block!");
     }
   }
-};
 
-type UserQuery = {
-  chatId?: string;
-  userMessage?: string;
-  templateName?: string;
-  trigger?: UserTrigger;
-  usersVariables?: VariableDictionary;
+  // the loop is finished. return the last response
+  return <UserChatResponse>{
+    chatId,
+    message: {
+      role: "assistant",
+      content: lastResponse,
+    },
+    meta: {},
+  };
 };
 
 /**
@@ -131,7 +176,7 @@ type UserQuery = {
  * This can START or CONTINUE a chat
  * That depends on the given data and if the chatId already exists
  */
-export const initChatFromUi = async (data: UserQuery) => {
+export const initChatFromUi = async (data: UserChatQuery) => {
   let session = data.chatId ? chatStore.get(data.chatId) : null;
 
   if (!session && data.templateName) {

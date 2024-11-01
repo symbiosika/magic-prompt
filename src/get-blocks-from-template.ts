@@ -99,9 +99,9 @@ export const getBlocksFromTemplate = (
 ): RawBlock[] => {
   try {
     const matches = extractRawMatches(template, parsers, singleLineParsers);
-    const typedMatches = matches.map((match, index) => ({
+    const typedMatches = matches.map((match) => ({
       ...convertMatchToRawBlock(match, [...parsers, ...singleLineParsers]),
-      order: index,
+      order: match.index || 0,
     }));
 
     return typedMatches;

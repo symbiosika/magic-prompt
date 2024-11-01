@@ -66,6 +66,7 @@ export type PlaceholderParser = {
     multiple?: boolean;
     default?: string | number | boolean;
   }[];
+  // replacer function is needed here!
 };
 
 export interface ParsedTemplate {

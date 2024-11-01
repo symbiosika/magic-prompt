@@ -26,9 +26,7 @@ export const demoTemplate = `
   {{/role}}
 {{/block}}
 
-{{#callback
-  role=assistant content=actual_question return=users_input
-}}
+{{#callback role=assistant content=actual_question return=users_input}}
 
 {{#block
   name=question_loop
