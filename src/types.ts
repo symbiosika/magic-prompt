@@ -30,16 +30,20 @@ export type ParsedMessage = Message & {
   setters: Setter[]; // like {{#set actual_position=0}}
 };
 
+export type VariableType = string | number | boolean | undefined;
+export type VariableDictionary = Record<string, VariableType>;
+export type MemoryDictionary = Record<string, VariableType[]>;
+
 export type RawBlock = {
   type: string;
   content: string;
-  arguments?: Record<string, string | number | boolean | undefined>;
+  arguments?: VariableDictionary;
   order: number;
 };
 
 export type BlockWithMessages = {
   type: string;
-  arguments?: Record<string, string | number | boolean | undefined>;
+  arguments?: VariableDictionary;
   messages: ParsedMessage[];
   order: number;
 };
@@ -47,9 +51,7 @@ export type BlockWithMessages = {
 export type BlockParser = {
   name: string;
   expression: RegExp;
-  argumentParser?: (
-    rawContent: string
-  ) => Record<string, string | number | boolean | undefined>; // a custom argument parser can be provided for each block type
+  argumentParser?: (rawContent: string) => VariableDictionary; // a custom argument parser can be provided for each block type
   requiredArguments?: string[]; // a list of required arguments for the block type
 };
 
@@ -177,3 +179,8 @@ export interface ParsedTemplateBlocks {
   functions: Record<string, ParsedFunction>;
   errors: string[];
 }
+
+export type UserTrigger = {
+  skip?: boolean;
+  next?: boolean;
+};
