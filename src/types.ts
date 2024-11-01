@@ -50,7 +50,6 @@ export type BlockWithMessages = {
 
 export type BlockParser = {
   name: string;
-  expression: RegExp;
   argumentParser?: (rawContent: string) => VariableDictionary; // a custom argument parser can be provided for each block type
   requiredArguments?: string[]; // a list of required arguments for the block type
 };
@@ -101,6 +100,14 @@ export type ParsedBlock = {
    * The name can be defined by the user. otherwise a guid will be used
    */
   name: string;
+  /**
+   * Is the block a callback to the user?
+   */
+  callback?: {
+    role: string;
+    contentVariable?: string;
+    returnVariables: string[];
+  };
   /**
    * Is executeFunction defined these functions will be called
    */

@@ -11,8 +11,6 @@
     {{/role}}
 {{/function}}
 
-{{#call function=generate_question}}
-
 {{#block
   name=next_question
   clear_on_start=true
@@ -27,15 +25,17 @@
   {{/role}}
 {{/block}}
 
-{{!-- #callback role=assistant content=actual_question return=users_input --}}
-
-{{#call_function=generate_summary}}
+{{#callback
+  role=assistant content=actual_question return=users_input
+}}
 
 {{#block
   name=question_loop
   next=next_question
   condition_next_value=none
   condition_next_checker=none
+
+  execute_on_start=generate_question
 
   clear_on_start=true
   clear_on_end=false
@@ -46,10 +46,6 @@
   allow_user_skip=true
   allow_user_next=false
 }}
-    {{#clear_chat_history}}
-    {{#call function=generate_question}}
-    {{#callback role=assistant content=actual_question return=users_input}}
-
     {{#role=system}}
         You will check if the user can answer random questions.
         Your answer will be a check for the answer. You will answer with "Correct" or "Not correct" only.

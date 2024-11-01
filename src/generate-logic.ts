@@ -51,6 +51,23 @@ const parseExecuteFunctions = (value: any): string[] | undefined => {
     .filter((f) => f.length > 0);
 };
 
+// Add this helper function to parse callback blocks
+const parseCallback = (block: BlockWithMessages): ParsedBlock["callback"] => {
+  const args = block.arguments || {};
+
+  if (!args.role || !args.return) {
+    throw new Error("Callback must have role and return arguments");
+  }
+
+  return {
+    role: String(args.role),
+    contentVariable: args.content ? String(args.content) : undefined,
+    returnVariables: String(args.return)
+      .split(",")
+      .map((v) => v.trim()),
+  };
+};
+
 /**
  * Parse a block and parse all its arguments
  * {{#block
@@ -139,11 +156,20 @@ export const parseTemplateToBlocks = (
   const blocks: ParsedBlock[] = [];
   const functions: Record<string, ParsedFunction> = {};
 
-  // Parse blocks
+  // Parse blocks and callbacks
   if (template.blocks) {
     for (const block of template.blocks) {
       try {
-        blocks.push(parseBlock(block));
+        if (block.type === "callback") {
+          // Create a minimal block for callbacks
+          blocks.push({
+            name: nanoid(),
+            messages: [],
+            callback: parseCallback(block),
+          });
+        } else {
+          blocks.push(parseBlock(block));
+        }
       } catch (error) {
         errors.push(
           `Error parsing block: ${

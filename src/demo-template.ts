@@ -12,8 +12,6 @@ export const demoTemplate = `
     {{/role}}
 {{/function}}
 
-{{#call function=generate_question}}
-
 {{#block
   name=next_question
   clear_on_start=true
@@ -28,16 +26,17 @@ export const demoTemplate = `
   {{/role}}
 {{/block}}
 
-{{!-- #callback role=assistant content=actual_question return=users_input --}}
-
-{{#call function=generate_summary}}
-{{#callback role=assistant content=actual_question return=users_input}}
+{{#callback
+  role=assistant content=actual_question return=users_input
+}}
 
 {{#block
   name=question_loop
   next=next_question
   condition_next_value=none
   condition_next_checker=none
+
+  execute_on_start=generate_question
 
   clear_on_start=true
   clear_on_end=false

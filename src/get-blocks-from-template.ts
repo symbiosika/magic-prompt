@@ -7,10 +7,12 @@ import { BlockParser, BlockWithMessages, RawBlock } from "./types";
  */
 const extractRawMatches = (
   template: string,
-  parsers: BlockParser[]
+  parsers: BlockParser[],
+  singleLineParsers: BlockParser[]
 ): RegExpMatchArray[] => {
-  // Extract the actual content between opening and closing tags
   const matches: RegExpMatchArray[] = [];
+
+  // Handle multi-line blocks
   for (const parser of parsers) {
     const pattern = new RegExp(
       `{{#${parser.name}[^}]*}}([\\s\\S]*?){{/${parser.name}}}`,
@@ -19,6 +21,18 @@ const extractRawMatches = (
     const parserMatches = [...template.matchAll(pattern)];
     matches.push(...parserMatches);
   }
+
+  // Handle single-line parsers
+  for (const parser of singleLineParsers) {
+    const pattern = new RegExp(`{{#${parser.name}[^}]*}}`, "g");
+    const parserMatches = [...template.matchAll(pattern)];
+    // Add empty content for single-line matches
+    parserMatches.forEach((match) => {
+      match[1] = ""; // Add empty content group
+    });
+    matches.push(...parserMatches);
+  }
+
   return matches;
 };
 
@@ -80,16 +94,16 @@ const validateRequiredArguments = (
  */
 export const getBlocksFromTemplate = (
   template: string,
-  parsers: BlockParser[]
+  parsers: BlockParser[],
+  singleLineParsers: BlockParser[]
 ): RawBlock[] => {
   try {
-    const matches = extractRawMatches(template, parsers);
+    const matches = extractRawMatches(template, parsers, singleLineParsers);
     const typedMatches = matches.map((match, index) => ({
-      ...convertMatchToRawBlock(match, parsers),
+      ...convertMatchToRawBlock(match, [...parsers, ...singleLineParsers]),
       order: index,
     }));
 
-    // Instead of creating an object, just return the typed matches
     return typedMatches;
   } catch (error) {
     throw new Error(`Failed to parse template: ${error + ""}`);

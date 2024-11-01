@@ -35,13 +35,6 @@
       "memoryVariable": "llm_checks",
       "messages": [
         {
-          "role": "user",
-          "content": "{{#clear_chat_history}}\r\n    {{#call function=generate_question}}\r\n    {{#callback role=assistant content=actual_question return=users_input}}",
-          "variables": {},
-          "placeholders": [],
-          "setters": []
-        },
-        {
           "role": "system",
           "content": "You will check if the user can answer random questions.\r\n        Your answer will be a check for the answer. You will answer with \"Correct\" or \"Not correct\" only.",
           "variables": {},
@@ -69,7 +62,7 @@
       ]
     },
     {
-      "name": "DLkp4JcgXxB_9d5tNCYdO",
+      "name": "ZjbyZoSu2zUA_YFJxfGob",
       "clearOnStart": true,
       "messages": [
         {
@@ -89,6 +82,17 @@
           "setters": []
         }
       ]
+    },
+    {
+      "name": "zMY8ptlbg4SETtRE8dakd",
+      "messages": [],
+      "callback": {
+        "role": "assistant",
+        "contentVariable": "actual_question",
+        "returnVariables": [
+          "users_input"
+        ]
+      }
     }
   ],
   "functions": {

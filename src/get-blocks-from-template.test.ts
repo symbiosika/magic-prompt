@@ -1,12 +1,19 @@
 // @ts-ignore
 import { describe, it, expect } from "bun:test";
 import { getBlocksFromTemplate } from "./get-blocks-from-template";
-import { standardBlockParsers } from "./standard-parsers";
+import {
+  standardBlockParsers,
+  standardSingleLineParsers,
+} from "./standard-parsers";
 
 describe("getBlocksFromTemplate", () => {
   describe("Basic Block Parsing", () => {
     it("should handle empty template", () => {
-      const result = getBlocksFromTemplate("", standardBlockParsers);
+      const result = getBlocksFromTemplate(
+        "",
+        standardBlockParsers,
+        standardSingleLineParsers
+      );
 
       for (const parser of standardBlockParsers) {
         expect(
@@ -22,7 +29,11 @@ describe("getBlocksFromTemplate", () => {
         {{/block}}
       `;
 
-      const result = getBlocksFromTemplate(template, standardBlockParsers);
+      const result = getBlocksFromTemplate(
+        template,
+        standardBlockParsers,
+        standardSingleLineParsers
+      );
       expect(result.filter((block) => block.type === "block")[0].content).toBe(
         "content with    spaces"
       );
@@ -36,7 +47,11 @@ describe("getBlocksFromTemplate", () => {
         {{#init}}init content{{/init}}
       `;
 
-      const result = getBlocksFromTemplate(template, standardBlockParsers);
+      const result = getBlocksFromTemplate(
+        template,
+        standardBlockParsers,
+        standardSingleLineParsers
+      );
 
       expect(
         result.filter((block) => block.type === "block")[0].arguments
@@ -52,7 +67,11 @@ describe("getBlocksFromTemplate", () => {
         {{#function name="test2" output="number"}}content 2{{/function}}
       `;
 
-      const result = getBlocksFromTemplate(template, standardBlockParsers);
+      const result = getBlocksFromTemplate(
+        template,
+        standardBlockParsers,
+        standardSingleLineParsers
+      );
 
       expect(result.filter((block) => block.type === "function").length).toBe(
         2
@@ -75,7 +94,11 @@ describe("getBlocksFromTemplate", () => {
       const template = `{{#function name="test"}}content{{/function}}`;
 
       expect(() =>
-        getBlocksFromTemplate(template, standardBlockParsers)
+        getBlocksFromTemplate(
+          template,
+          standardBlockParsers,
+          standardSingleLineParsers
+        )
       ).toThrow(/Missing required arguments.*output/);
     });
   });
@@ -89,7 +112,11 @@ describe("getBlocksFromTemplate", () => {
         {{/block}}
       `;
 
-      const result = getBlocksFromTemplate(template, standardBlockParsers);
+      const result = getBlocksFromTemplate(
+        template,
+        standardBlockParsers,
+        standardSingleLineParsers
+      );
       expect(result.filter((block) => block.type === "block")[0].content).toBe(
         "{{#role=system}}system message{{/role}}\n          {{#role=user}}user message{{/role}}"
       );
@@ -105,7 +132,11 @@ describe("getBlocksFromTemplate", () => {
         {{/block}}
       `;
 
-      const result = getBlocksFromTemplate(template, standardBlockParsers);
+      const result = getBlocksFromTemplate(
+        template,
+        standardBlockParsers,
+        standardSingleLineParsers
+      );
       expect(
         result.filter((block) => block.type === "block")[0].content
       ).toContain("outer");

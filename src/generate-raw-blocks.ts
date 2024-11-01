@@ -7,6 +7,7 @@ import { parseDialogFromBlock } from "./parse-dialog-from-block";
 import {
   standardBlockParsers,
   standardPlaceholderParsers,
+  standardSingleLineParsers,
 } from "./standard-parsers";
 import {
   BlockParser,
@@ -78,6 +79,8 @@ export const parseTemplateRaw = async (
     additionalBlockParsers?: BlockParser[];
     placeholderParsers?: PlaceholderParser[];
     additionalPlaceholderParsers?: PlaceholderParser[];
+    singleLineParsers?: BlockParser[];
+    additionalSingleLineParsers?: BlockParser[];
   }
 ): Promise<ParsedTemplate> => {
   // Define the parsers. Add additional parsers if provided
@@ -93,13 +96,21 @@ export const parseTemplateRaw = async (
     placeholderParsers.push(...options.additionalPlaceholderParsers);
   }
 
+  const singleLineParsers = options?.singleLineParsers ?? [
+    ...standardSingleLineParsers,
+  ];
+  if (options?.additionalSingleLineParsers) {
+    singleLineParsers.push(...options.additionalSingleLineParsers);
+  }
+
   // Remove comments from template
   const templateWithoutComments = stripComments(template);
 
   // Get all blocks from template
   const rawBlocks = getBlocksFromTemplate(
     templateWithoutComments,
-    blockParsers
+    blockParsers,
+    singleLineParsers
   );
 
   const BlockWithMessagess: BlockWithMessages[] = [];
@@ -123,7 +134,7 @@ export const parseTemplateRaw = async (
   const parsedTemplate: ParsedTemplate = {
     errors: [],
     blocks: BlockWithMessagess.filter(
-      (block) => block.type === "block" || block.type === "loop"
+      (block) => block.type === "block" || block.type === "callback"
     ).sort((a, b) => a.order - b.order),
     functions: BlockWithMessagess.filter(
       (block) => block.type === "function"

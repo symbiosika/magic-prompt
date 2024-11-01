@@ -3,17 +3,25 @@ import { BlockParser, PlaceholderParser } from "./types";
 export const standardBlockParsers: BlockParser[] = [
   {
     name: "block",
-    expression: /{{#block(?:\s+[^}]*)?}}[\s\S]*?{{\/block}}/g,
   },
   {
     name: "init",
-    expression: /{{#init(?:\s+[^}]*)?}}[\s\S]*?{{\/init}}/g,
     argumentParser: (_rawContent: string) => ({}),
   },
   {
     name: "function",
-    expression: /{{#function(?:\s+[^}]*)?}}[\s\S]*?{{\/function}}/g,
     requiredArguments: ["output", "name"],
+  },
+  {
+    name: "callback",
+    requiredArguments: ["role", "return"],
+  },
+];
+
+export const standardSingleLineParsers: BlockParser[] = [
+  {
+    name: "callback",
+    requiredArguments: ["role", "return"],
   },
 ];
 
