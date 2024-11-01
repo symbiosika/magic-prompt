@@ -39,6 +39,15 @@ const parseConditionNext = (
   };
 };
 
+// Helper function to parse executeOnStart and executeOnEnd function arrays
+const parseExecuteFunctions = (value: any): string[] | undefined => {
+  if (isEffectivelyUndefined(value)) return undefined;
+  return String(value)
+    .split(",")
+    .map((f) => f.trim())
+    .filter((f) => f.length > 0);
+};
+
 /**
  * Parse a block and parse all its arguments
  * {{#block
@@ -46,13 +55,13 @@ const parseConditionNext = (
  *  next=next_question
  *  condition_next_value=none
  *  condition_next_checker=none
- *
+ *  executeOnStart=func1,func2
+ *  executeOnEnd=func3,func4
  *  clear_on_start=true
  *  clear_on_end=false
  *  max_tokens=1
  *  output=llm_check
  *  memory=llm_checks
- *
  *  allow_open_chat=false
  *  allow_user_skip=true
  *  allow_user_next=false
@@ -63,6 +72,8 @@ const parseBlock = (block: BlockWithMessages): ParsedBlock => {
 
   const parsedBlock: ParsedBlock = {
     name: args.name ? String(args.name) : nanoid(),
+    executeOnStart: parseExecuteFunctions(args.executeOnStart),
+    executeOnEnd: parseExecuteFunctions(args.executeOnEnd),
     next: isEffectivelyUndefined(args.next) ? undefined : String(args.next),
     conditionNext: parseConditionNext(
       args.condition_next_value,
@@ -175,6 +186,24 @@ export const parseTemplateToBlocks = (
         `Block "${block.name}" references non-existent checker function "${block.conditionNext.checker}"`
       );
     }
+
+    // Validate executeOnStart functions
+    block.executeOnStart?.forEach((funcName) => {
+      if (!functions[funcName]) {
+        errors.push(
+          `Block "${block.name}" references non-existent executeOnStart function "${funcName}"`
+        );
+      }
+    });
+
+    // Validate executeOnEnd functions
+    block.executeOnEnd?.forEach((funcName) => {
+      if (!functions[funcName]) {
+        errors.push(
+          `Block "${block.name}" references non-existent executeOnEnd function "${funcName}"`
+        );
+      }
+    });
   }
 
   return {
