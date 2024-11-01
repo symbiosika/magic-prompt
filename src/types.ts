@@ -37,7 +37,7 @@ export type RawBlock = {
   order: number;
 };
 
-export type ParsedBlock = {
+export type BlockWithMessages = {
   type: string;
   arguments?: Record<string, string | number | boolean | undefined>;
   messages: ParsedMessage[];
@@ -69,13 +69,111 @@ export type PlaceholderParser = {
 
 export interface ParsedTemplate {
   errors: string[];
-  functions?: ParsedBlock[];
-  blocks?: ParsedBlock[];
-  init?: ParsedBlock[];
+  functions?: BlockWithMessages[];
+  blocks?: BlockWithMessages[];
+  init?: BlockWithMessages[];
 }
 
-export type ParsedFunction = {
+/**
+ * Full parsed blocks in the script
+ {{#block
+  name=question_loop
+  next=next_question
+  condition_next_value=none
+  condition_next_checker=none
+
+  clear_on_start=true
+  clear_on_end=false
+  max_tokens=1
+  output=llm_check
+  memory=llm_checks
+
+  allow_open_chat=false
+  allow_user_skip=true
+  allow_user_next=false
+}}
+*/
+
+export type ParsedBlock = {
+  /**
+   * The name can be defined by the user. otherwise a guid will be used
+   */
   name: string;
-  arguments: Record<string, string | number | boolean | undefined>;
+  /**
+   * Is executeFunction defined these functions will be called
+   */
+  executeOnStart?: string[];
+  executeOnEnd?: string[];
+  /**
+   * The next block to call
+   * The name needs will be checked if it exists when parsing the template
+   */
+  next?: string;
+  /**
+   * The next block to call if the condition is met
+   * Both must be defined if one is defined
+   */
+  conditionNext?: {
+    value: string; // a string value that will be checked to be equal to the output of the conditionCheck
+    checker?: string; // the function-name to call to check if the condition is met
+  };
+  /**
+   * User flow control
+   */
+  allowOpenChat?: boolean;
+  allowManualSkip?: boolean; // a trigger will go to the next block independent of the "next" property
+  allowManualNext?: boolean; // a trigger will go to the next block defined in the "next" property
+  /**
+   * Clear the chatHistory before or after the block is executed
+   */
+  clearOnStart?: boolean;
+  clearOnEnd?: boolean;
+  /**
+   * The maximum number of tokens the LLM should use
+   */
+  maxTokens?: number;
+  /**
+   * A block can have ONE output variable and ONE memory variable
+   * The output is always a string
+   * The memory is always an array of strings
+   */
+  outputVariable?: string;
+  memoryVariable?: string;
+  /**
+   * The LLM Dialog
+   */
   messages: ParsedMessage[];
 };
+
+export type ParsedFunction = {
+  /**
+   * The name can be defined by the user. otherwise a guid will be used
+   */
+  name: string;
+  /**
+   * A funciton can have ONE output variable and ONE memory variable
+   * The output is always a string
+   * The memory is always an array of strings
+   */
+  outputVariable: string;
+  memoryVariable?: string;
+  messages: ParsedMessage[];
+};
+
+export type ParsedBlockReturnValue = {
+  name: string;
+  outputToVariable?: {
+    variable: string;
+    value: string;
+  };
+  outputToMemory?: {
+    variable: string;
+    value: string;
+  };
+};
+
+export interface ParsedTemplateBlocks {
+  blocks: ParsedBlock[];
+  functions: Record<string, ParsedFunction>;
+  errors: string[];
+}

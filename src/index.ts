@@ -13,7 +13,7 @@ import {
 } from "./standard-parsers";
 import {
   BlockParser,
-  ParsedBlock,
+  BlockWithMessages,
   PlaceholderParser,
   ParsedMessage,
   ParsedTemplate,
@@ -107,7 +107,7 @@ export const parseTemplateRaw = async (
     blockParsers
   );
 
-  const parsedBlocks: ParsedBlock[] = [];
+  const BlockWithMessagess: BlockWithMessages[] = [];
 
   // Iterate over all blocks
   for (const block of rawBlocks) {
@@ -115,27 +115,27 @@ export const parseTemplateRaw = async (
     const dialog = parseDialogFromBlock(block);
 
     // Create the parsed block
-    const parsedBlock: ParsedBlock = {
+    const BlockWithMessages: BlockWithMessages = {
       type: block.type,
       arguments: block.arguments,
       messages: extendChatMessages(dialog),
       order: block.order,
     };
 
-    parsedBlocks.push(parsedBlock);
+    BlockWithMessagess.push(BlockWithMessages);
   }
 
   const parsedTemplate: ParsedTemplate = {
     errors: [],
-    blocks: parsedBlocks
-      .filter((block) => block.type === "block" || block.type === "loop")
-      .sort((a, b) => a.order - b.order),
-    functions: parsedBlocks
-      .filter((block) => block.type === "function")
-      .sort((a, b) => a.order - b.order),
-    init: parsedBlocks
-      .filter((block) => block.type === "init")
-      .sort((a, b) => a.order - b.order),
+    blocks: BlockWithMessagess.filter(
+      (block) => block.type === "block" || block.type === "loop"
+    ).sort((a, b) => a.order - b.order),
+    functions: BlockWithMessagess.filter(
+      (block) => block.type === "function"
+    ).sort((a, b) => a.order - b.order),
+    init: BlockWithMessagess.filter((block) => block.type === "init").sort(
+      (a, b) => a.order - b.order
+    ),
   };
 
   return parsedTemplate;

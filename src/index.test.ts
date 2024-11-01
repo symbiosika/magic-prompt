@@ -3,131 +3,7 @@ import { describe, it, expect } from "bun:test";
 import { parseTemplateRaw } from "./index";
 
 describe("parseTemplate", () => {
-  it("should parse a complete template correctly", async () => {
-    const template = `
-{{!-- 
-A Comment. This must be removed!
---}}
-
-{{#function name=generate_question memory=asked_questions output=actual_question}}  
-{{#role=system}}
-You will create random questions.
-{{/role}}
-
-{{#role=user}}      
-Create a question.
-You have already asked these questions:
-{{asked_questions}}
-
-Don´t repeat yourself.
-{{/role}}
-{{/function}}
-
-{{#init}}
-  {{#set actual_position=0}}
-{{/init}}
-
-{{#block}}
-{{!--
-One more Comment
---}}
-{{#call function=generate_summary}}
-{{/block}}
-
-{{#loop output=final}}  
-{{#role=system}}
-Some text
-{{/role}}
-
-{{#role=assistant}}
-Some more text
-{{some_variable}}
-{{/role}}
-
-{{#role=user}}
-{{user_input}}
-{{/role}}
-
-{{#next condition_checker=check_if_user_finished condition=Ja}}
-{{/loop}}
-`;
-
-    const result = await parseTemplateRaw(template, {});
-
-    expect(result).toEqual({
-      errors: [],
-      blocks: [
-        {
-          type: "block",
-          arguments: {},
-          messages: [
-            {
-              role: "user",
-              content: "{{#call function=generate_summary}}",
-              variables: {},
-              placeholders: [],
-              setters: [],
-            },
-          ],
-          order: 0,
-        },
-      ],
-      functions: [
-        {
-          type: "function",
-          arguments: {
-            name: "generate_question",
-            memory: "asked_questions",
-            output: "actual_question",
-          },
-          messages: [
-            {
-              role: "system",
-              content: "You will create random questions.",
-              variables: {},
-              placeholders: [],
-              setters: [],
-            },
-            {
-              role: "user",
-              content:
-                "Create a question.\nYou have already asked these questions:\n{{asked_questions}}\n\nDon´t repeat yourself.",
-              variables: {
-                asked_questions: true,
-              },
-              placeholders: [],
-              setters: [],
-            },
-          ],
-          order: 3,
-        },
-      ],
-      init: [
-        {
-          type: "init",
-          arguments: {},
-          messages: [
-            {
-              role: "user",
-              content: "{{#set actual_position=0}}",
-              variables: {},
-              placeholders: [],
-              setters: [
-                {
-                  fullMatch: "{{#set actual_position=0}}",
-                  name: "actual_position",
-                  value: 0,
-                },
-              ],
-            },
-          ],
-          order: 1,
-        },
-      ],
-    });
-  });
-
-  it("should parse a complete quiz template correctly", async () => {
+  it("should parse a text template correctly", async () => {
     const template = `
 {{#function name=generate_question memory=asked_questions output=actual_question}}
     {{#role=system}}
@@ -142,12 +18,41 @@ Some more text
     {{/role}}
 {{/function}}
 
-{{#init}}
-  {{#set actual_position=0}}
-  {{#call function=generate_question}}
-{{/init}}
+{{#call function=generate_question}}
 
-{{#loop max=100 max_tokens=1 forget=true output=llm_checks next=manual_trigger}}
+{{#block
+  name=next_question
+  clear_on_start=true
+  clear_on_end=false
+  output=none
+}}  
+  {{#role=assistant}}
+    The actual question is: {{actual_question}}
+  {{/role}}
+  {{#role=user}}
+    What is the actual question? Reply with the question only.
+  {{/role}}
+{{/block}}
+
+{{!-- #callback role=assistant content=actual_question return=users_input --}}
+
+{{#call_function=generate_summary}}
+
+{{#block
+  name=question_loop
+  next=next_question
+  condition_next_value=none
+  condition_next_checker=none
+
+  clear_on_start=true
+  clear_on_end=false
+  max_tokens=1
+  output=llm_check
+  memory=llm_checks
+
+  allow_user_skip=true
+  allow_user_next=false
+}}
     {{#clear_chat_history}}
     {{#call function=generate_question}}
     {{#callback role=assistant content=actual_question return=users_input}}
@@ -164,9 +69,9 @@ Some more text
     {{#role=user}}
         {{users_input}}
     {{/role}}
-{{/loop}}
+{{/block}}
 
-{{#block}}
+{{#block clear_on_start=true}}
     {{#role=assistant}}
         You will check give the user a count of valid answers ("Correct") and invalid answers ("Not correct").
     {{/role}}
@@ -175,7 +80,8 @@ Some more text
         Please give me my result. I had these results:
         {{llm_checks}}
     {{/role}}
-{{/block}}`;
+{{/block}}
+`;
 
     const result = await parseTemplateRaw(template, {});
 
@@ -184,23 +90,27 @@ Some more text
       blocks: [
         {
           type: "block",
-          arguments: {},
+          arguments: {
+            name: "next_question",
+            clear_on_start: true,
+            clear_on_end: false,
+            output: "none",
+          },
           messages: [
             {
               role: "assistant",
-              content:
-                'You will check give the user a count of valid answers ("Correct") and invalid answers ("Not correct").',
-              variables: {},
+              content: "The actual question is: {{actual_question}}",
+              variables: {
+                actual_question: true,
+              },
               placeholders: [],
               setters: [],
             },
             {
               role: "user",
               content:
-                "Please give me my result. I had these results:\n        {{llm_checks}}",
-              variables: {
-                llm_checks: true,
-              },
+                "What is the actual question? Reply with the question only.",
+              variables: {},
               placeholders: [],
               setters: [],
             },
@@ -208,13 +118,19 @@ Some more text
           order: 0,
         },
         {
-          type: "loop",
+          type: "block",
           arguments: {
-            max: 100,
+            name: "question_loop",
+            next: "next_question",
+            condition_next_value: "none",
+            condition_next_checker: "none",
+            clear_on_start: true,
+            clear_on_end: false,
             max_tokens: 1,
-            forget: true,
-            output: "llm_checks",
-            next: "manual_trigger",
+            output: "llm_check",
+            memory: "llm_checks",
+            allow_user_skip: true,
+            allow_user_next: false,
           },
           messages: [
             {
@@ -247,6 +163,33 @@ Some more text
               content: "{{users_input}}",
               variables: {
                 users_input: true,
+              },
+              placeholders: [],
+              setters: [],
+            },
+          ],
+          order: 1,
+        },
+        {
+          type: "block",
+          arguments: {
+            clear_on_start: true,
+          },
+          messages: [
+            {
+              role: "assistant",
+              content:
+                'You will check give the user a count of valid answers ("Correct") and invalid answers ("Not correct").',
+              variables: {},
+              placeholders: [],
+              setters: [],
+            },
+            {
+              role: "user",
+              content:
+                "Please give me my result. I had these results:\n        {{llm_checks}}",
+              variables: {
+                llm_checks: true,
               },
               placeholders: [],
               setters: [],
@@ -285,29 +228,7 @@ Some more text
           order: 3,
         },
       ],
-      init: [
-        {
-          type: "init",
-          arguments: {},
-          messages: [
-            {
-              role: "user",
-              content:
-                "{{#set actual_position=0}}\n  {{#call function=generate_question}}",
-              variables: {},
-              placeholders: [],
-              setters: [
-                {
-                  fullMatch: "{{#set actual_position=0}}",
-                  name: "actual_position",
-                  value: 0,
-                },
-              ],
-            },
-          ],
-          order: 1,
-        },
-      ],
+      init: [],
     });
   });
 });

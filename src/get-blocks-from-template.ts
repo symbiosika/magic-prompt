@@ -1,6 +1,6 @@
 import { parseArgumentsWithoutLimits } from "./parse-arguments";
 import { parseDialogFromBlock } from "./parse-dialog-from-block";
-import { BlockParser, ParsedBlock, RawBlock } from "./types";
+import { BlockParser, BlockWithMessages, RawBlock } from "./types";
 
 /**
  * Extracts raw matches from template using combined parser expressions
