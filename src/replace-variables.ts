@@ -2,7 +2,7 @@ import {
   ChatMessage,
   PlaceholderParser,
   TemplateChatLogger,
-  VariableDictionary,
+  VariableDictionaryInMemory,
 } from "./types";
 import { parseArgumentsWithoutLimits } from "./parse-arguments";
 
@@ -11,7 +11,7 @@ import { parseArgumentsWithoutLimits } from "./parse-arguments";
  */
 export const replaceVariables = async (
   messages: ChatMessage[],
-  variables: VariableDictionary,
+  variables: VariableDictionaryInMemory,
   logger?: TemplateChatLogger
 ) => {
   const replacedMessages: ChatMessage[] = [];

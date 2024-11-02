@@ -31,6 +31,7 @@ export type ParsedMessage = Message & {
 };
 
 export type VariableType = string | number | boolean | undefined;
+export type VariableDictionary = Record<string, VariableType>;
 
 export type VariableTypeInMemory =
   | string
@@ -41,7 +42,7 @@ export type VariableTypeInMemory =
   | boolean[]
   | undefined;
 
-export type VariableDictionary = Record<string, VariableTypeInMemory>;
+export type VariableDictionaryInMemory = Record<string, VariableTypeInMemory>;
 
 export type RawBlock = {
   type: string;
@@ -125,6 +126,12 @@ export type ParsedBlock = {
     role: string;
     contentVariable?: string;
     returnVariables: string[];
+  };
+  /**
+   * Is the block a setter?
+   */
+  setter?: {
+    variables: VariableDictionary;
   };
   /**
    * Is executeFunction defined these functions will be called
@@ -261,14 +268,14 @@ export interface ChatSessionWithTemplate extends BaseChatSession {
       def: ParsedTemplateBlocks;
       blockIndex: number;
     };
-    variables: VariableDictionary;
+    variables: VariableDictionaryInMemory;
   };
 }
 
 export interface ChatSessionWithoutTemplate extends BaseChatSession {
   state: {
     useTemplate: undefined;
-    variables: VariableDictionary;
+    variables: VariableDictionaryInMemory;
   };
 }
 
