@@ -27,6 +27,7 @@ const main = async () => {
       writeFileSync(outputFile, JSON.stringify(template, null, 2));
 
       console.log(`Template saved to ${outputFile}`);
+      process.exit(0);
     } catch (error) {
       console.error("Error:", error + "");
       process.exit(1);
@@ -47,6 +48,7 @@ const main = async () => {
       writeFileSync(outputFile, JSON.stringify(parsedTemplate, null, 2));
 
       console.log(`Template saved to ${outputFile}`);
+      process.exit(0);
     } catch (error) {
       console.error("Error:", error + "");
       process.exit(1);

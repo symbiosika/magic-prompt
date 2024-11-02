@@ -16,6 +16,7 @@
   clear_on_start=true
   clear_on_end=false
   output=none
+  execute_on_start=generate_question
 }}  
   {{#role=assistant}}
     The actual question is: {{actual_question}}
@@ -32,21 +33,20 @@
   next=next_question
   condition_next_value=none
   condition_next_checker=none
-
-  execute_on_start=generate_question
-
   clear_on_start=true
   clear_on_end=false
-  max_tokens=1
+  max_tokens=50
   output=llm_check
   memory=llm_checks
-
   allow_user_skip=true
   allow_user_next=false
 }}
     {{#role=system}}
         You will check if the user can answer random questions.
-        Your answer will be a check for the answer. You will answer with "Correct" or "Not correct" only.
+        Your answer will be a check for the answer.
+        You will answer short with:
+        "Correct" or
+        "Not correct. The correct answer is: ..."
     {{/role}}
 
     {{#role=assistant}}

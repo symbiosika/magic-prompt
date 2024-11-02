@@ -2,6 +2,9 @@
   "blocks": [
     {
       "name": "next_question",
+      "executeOnStart": [
+        "generate_question"
+      ],
       "clearOnStart": true,
       "clearOnEnd": false,
       "messages": [
@@ -24,7 +27,7 @@
       ]
     },
     {
-      "name": "CB5tL8JCbrr7tTzLt1P0u",
+      "name": "GoKpTU8VUKHb2ICIBobvp",
       "messages": [],
       "callback": {
         "role": "assistant",
@@ -41,13 +44,13 @@
       "allowManualNext": false,
       "clearOnStart": true,
       "clearOnEnd": false,
-      "maxTokens": 1,
+      "maxTokens": 50,
       "outputVariable": "llm_check",
       "memoryVariable": "llm_checks",
       "messages": [
         {
           "role": "system",
-          "content": "You will check if the user can answer random questions.\r\n        Your answer will be a check for the answer. You will answer with \"Correct\" or \"Not correct\" only.",
+          "content": "You will check if the user can answer random questions.\n        Your answer will be a check for the answer.\n        You will answer short with:\n        \"Correct\" or\n        \"Not correct. The correct answer is: ...\"",
           "variables": {},
           "placeholders": [],
           "setters": []
@@ -73,7 +76,7 @@
       ]
     },
     {
-      "name": "IkaNwBue9wx1qsAJJ6ovX",
+      "name": "1-Yb33t9KBaCzxgVAF0Eh",
       "clearOnStart": true,
       "messages": [
         {
@@ -85,7 +88,7 @@
         },
         {
           "role": "user",
-          "content": "Please give me my result. I had these results:\r\n        {{llm_checks}}",
+          "content": "Please give me my result. I had these results:\n        {{llm_checks}}",
           "variables": {
             "llm_checks": true
           },
@@ -110,7 +113,7 @@
         },
         {
           "role": "user",
-          "content": "Create a question.\r\n        You have already asked these questions:\r\n        {{asked_questions}}\r\n        Don´t repeat yourself.",
+          "content": "Create a question.\n        You have already asked these questions:\n        {{asked_questions}}\n        Don´t repeat yourself.",
           "variables": {
             "asked_questions": true
           },
