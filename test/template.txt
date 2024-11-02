@@ -11,6 +11,8 @@
     {{/role}}
 {{/function}}
 
+{{#set test=1}}
+
 {{#block
   name=next_question
   clear_on_start=true

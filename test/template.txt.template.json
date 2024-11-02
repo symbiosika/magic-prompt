@@ -1,6 +1,15 @@
 {
   "blocks": [
     {
+      "name": "Y6YKzViJ1tOEwb3kc8PKN",
+      "messages": [],
+      "setter": {
+        "variables": {
+          "test": 1
+        }
+      }
+    },
+    {
       "name": "next_question",
       "executeOnStart": [
         "generate_question"
@@ -27,7 +36,7 @@
       ]
     },
     {
-      "name": "GoKpTU8VUKHb2ICIBobvp",
+      "name": "I_HZG4w0BPiOxThlHQoQa",
       "messages": [],
       "callback": {
         "role": "assistant",
@@ -76,7 +85,7 @@
       ]
     },
     {
-      "name": "1-Yb33t9KBaCzxgVAF0Eh",
+      "name": "uKXB04sWarO5lLN2F3AQW",
       "clearOnStart": true,
       "messages": [
         {

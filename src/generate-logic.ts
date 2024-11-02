@@ -51,7 +51,7 @@ const parseExecuteFunctions = (value: any): string[] | undefined => {
     .filter((f) => f.length > 0);
 };
 
-// Add this helper function to parse callback blocks
+// Helper to parse callback blocks
 const parseCallback = (block: BlockWithMessages): ParsedBlock["callback"] => {
   const args = block.arguments || {};
 
@@ -65,6 +65,13 @@ const parseCallback = (block: BlockWithMessages): ParsedBlock["callback"] => {
     returnVariables: String(args.return)
       .split(",")
       .map((v) => v.trim()),
+  };
+};
+
+// Helper to parse setter blocks
+const parseSetter = (block: BlockWithMessages): ParsedBlock["setter"] => {
+  return {
+    variables: block.arguments || {},
   };
 };
 
@@ -166,6 +173,12 @@ export const parseTemplateToBlocks = (
             name: nanoid(),
             messages: [],
             callback: parseCallback(block),
+          });
+        } else if (block.type === "set") {
+          blocks.push({
+            name: nanoid(),
+            messages: [],
+            setter: parseSetter(block),
           });
         } else {
           blocks.push(parseBlock(block));

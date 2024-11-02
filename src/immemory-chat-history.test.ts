@@ -2,14 +2,9 @@ import { describe, it, expect, beforeEach } from "bun:test";
 import { ChatHistoryStore } from "./immemory-chat-history";
 import { ChatMessage, ParsedTemplateBlocks } from "./types";
 
+const store = new ChatHistoryStore(48);
+
 describe("ChatHistoryStore", () => {
-  let store: ChatHistoryStore;
-
-  beforeEach(() => {
-    // Create a new store before each test
-    store = new ChatHistoryStore(48);
-  });
-
   describe("create", () => {
     it("should create a new chat session without template", () => {
       const session = store.create();
@@ -47,12 +42,16 @@ describe("ChatHistoryStore", () => {
 
       // Wait a bit to ensure new Date() gives different time
       setTimeout(() => {
+        // console.log(session.id);
         const retrieved = store.get(session.id);
+        if (!retrieved) {
+          throw new Error("Session not found");
+        }
         expect(retrieved).toBeDefined();
-        expect(retrieved!.lastUsedAt.getTime()).toBeGreaterThan(
+        expect(retrieved.lastUsedAt.getTime()).toBeGreaterThan(
           originalDate.getTime()
         );
-      }, 1);
+      }, 100);
     });
   });
 

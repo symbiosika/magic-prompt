@@ -12,6 +12,8 @@ export const demoTemplate = `
     {{/role}}
 {{/function}}
 
+{{#set demo=1}}
+
 {{#block
   name=next_question
   clear_on_start=true

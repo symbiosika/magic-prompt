@@ -134,7 +134,10 @@ export const parseTemplateRaw = async (
   const parsedTemplate: ParsedTemplate = {
     errors: [],
     blocks: BlockWithMessagess.filter(
-      (block) => block.type === "block" || block.type === "callback"
+      (block) =>
+        block.type === "block" ||
+        block.type === "callback" ||
+        block.type === "set"
     ).sort((a, b) => a.order - b.order),
     functions: BlockWithMessagess.filter(
       (block) => block.type === "function"

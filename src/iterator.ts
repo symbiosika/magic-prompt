@@ -127,6 +127,16 @@ export const blockLoop = async (
     await logger?.debug?.("# Execute block", block.name);
 
     /**
+     * Check if we have a setter
+     */
+    if (block.setter) {
+      await logger?.debug?.("# Set variables", block.setter.variables);
+      chatStore.mergeVariables(chatId, block.setter.variables);
+      x++;
+      continue;
+    }
+
+    /**
      * Check if we have a callback
      */
     if (block.callback) {
