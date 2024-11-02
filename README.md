@@ -1,76 +1,52 @@
-# Magic Prompt
+# 🪄 Magic Prompt
+
+The world's first text-based scripting library for creating complex LLM chat flows in your TypeScript App - no coding for the end-user is required!
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> ⚠️ **Experimental Status**: This project is currently a proof of concept and in experimental stage. Use with caution in production environments.
+
+## 🤝 Contributing
+
+We welcome contributions and ideas to improve this library!
+
+## 🌟 Overview
+
+Magic Prompt is a library that lets you create AI chat flows using simple text-based scripting. No Python, no complex programming - just intuitive text commands to build powerful conversational experiences.
+
+You can use Magic Prompt to build simple templates with Variales or to build complex chain of thoughts prompting.
+
+## ✨ Key Features
+
+- **Text-Based Scripting**: Create complex chat flows using simple, intuitive syntax
+- **No Programming Required**: Design advanced chat patterns without coding knowledge for the end-user
+- **Powerful Control Flow**: Use blocks, variables, functions, and jump markers
+- **Memory Management**: Optional you can use the Built-in variable and state management (in-memory)
+- **Flexible Integration**: Works with various LLM providers. Depends on your implementation
+- **Loop & Condition Support**: Create interactive, dynamic conversations
+
+## 🚀 Quick Start
+
+1. Install Magic Prompt:
+
+```bash
+npm install magic-prompt
+```
+
+2. Create your first chat flow:
 
 ```
-{{!--
-A Comment. All comments will not be added to any chat
---}}
-
-{{!--
-Functions: You can define simple functions.
-Each function has a output-variable and a name that has to be defined as minimum.
-There is also an optional second variable "memory" which is always output as array with all generated answers.
-Normally a function generates text since we are working with LLMs here!
-
-Each function is a simple Dialog.
-All happenings here will not be appended to the main chat.
---}}
-
-{{#function name=generate_question memory=asked_questions output=actual_question}}
+{{#function name=generate_question output=actual_question}}
     {{#role=system}}
         You will create random questions.
     {{/role}}
 
     {{#role=user}}
         Create a question.
-        You have already asked these questions:
-        {{asked_questions}}
-        Don´t repeat yourself.
     {{/role}}
 {{/function}}
 
-{{!--
-The init-Block is optional. This will be executed on start.
-You can set variables here.
-All happenings here will not be appended to the main chat.
---}}
-{{#init}}
-  {{#set actual_position=0}}
-  {{#call function=generate_question}}
-{{/init}}
-
-{{!--
-The main logic are blocks.
-A "block" describes a Dialog which will be send to the LLM with one request!
-Per default all blocks will be added to the main chat.
-If you want to hide a block from the main chat you can add "forget=true".
-If you execute complex Dialogs where some prompts have confidential information
-you can hide that.
---}}
-
-{{#loop
-    max=100
-    max_tokens=1
-    forget=true
-    output=llm_checks
-    next=manual_trigger
-    clear=true
-    call=generate_question
-    callback=true
-    callback_role=assistant
-    callback_return=users_input
-    }}
-
-     {{!--
-     That will return the last message to the user. He must then active continue.
-     content will push a list of values to the frontend in the given order.
-     return is an array of requested values.
-     --}}
-
-    {{#role=system}}
-        You will check if the user can answer random questions.
-        Your answer will be a check for the answer. You will answer with "Correct" or "Not correct" only.
-    {{/role}}
-
+{{#block name=ask_question execute_on_start=generate_question}}
     {{#role=assistant}}
         {{actual_question}}
     {{/role}}
@@ -78,30 +54,114 @@ you can hide that.
     {{#role=user}}
         {{users_input}}
     {{/role}}
-{{/loop}}
-
-{{#block output=llm_checks,actual_question}}
-    {{#role=assistant}}
-        You will check give the user a count of valid answers ("Correct") and invalid answers ("Not correct").
-    {{/role}}
-
-    {{#role=user}}
-        Please give me my result. I had these results:
-        {{llm_checks}}
-    {{/role}}
 {{/block}}
-
-{{!--
-The last block "output" defines the variables that are given back to the user.
---}}
-
-{{#batch variable=llm_checks offset=x increment=5}}
-increases on each call.
-
 ```
 
-{{#chat_history}}
+## 🔧 Core Concepts
 
-## Execute on file directly
+### Chat Blocks
 
-ts-node .\src\cli.ts .\test\template.txt
+Define conversation segments with specific roles and purposes:
+
+```
+{{#block}}
+    {{#role=system}}
+        Greet the user professionally.
+    {{/role}}
+{{/block}}
+```
+
+### Variables
+
+Store and manage state throughout your conversation:
+
+```
+{{#set user_name=response}}
+{{#role=assistant}}Hello {{user_name}}!{{/role}}
+```
+
+Variables can also be set by the user from the Chat or programmatically.
+They are handled in the Chat-Session-Store in a key-value store.
+
+### Functions
+
+Create reusable conversation patterns:
+
+```
+{{#function name=validate_answer output=is_correct max_tokens=1}}
+    {{#role=system}}
+        Check if the answer is correct.
+        You will respond only with "yes" or "no".
+    {{/role}}
+    {{#role=user}}
+        {{users_answer}}
+    {{/role}}
+{{/function}}
+```
+
+### Jump Markers
+
+Control conversation flow:
+
+```
+{{#block condition_next_checker=validate_answer condition_next_value="yes" next=my_next_block}}
+```
+
+## 📚 Documentation
+
+...more documentation will follow soon...
+
+### Block Arguments
+
+Blocks can be configured with the following arguments:
+
+```
+{{#block
+  name="my_block"              # Optional: Unique identifier (auto-generated if not provided)
+  next="next_block"            # Optional: Name of the next block to execute
+  condition_next_value="yes"   # Optional: Value to check for conditional next block
+  condition_next_checker="fn"  # Optional: Function name to check condition
+  execute_on_start="fn1,fn2"   # Optional: Comma-separated functions to run before block
+  execute_on_end="fn3,fn4"     # Optional: Comma-separated functions to run after block
+  clear_on_start=true          # Optional: Clear chat history before block (default: false)
+  clear_on_end=false           # Optional: Clear chat history after block (default: false)
+  max_tokens=1000              # Optional: Maximum tokens for LLM response
+  output="variable_name"       # Optional: Variable to store LLM response
+  memory="memory_name"         # Optional: Array variable to accumulate responses
+  allow_open_chat=false        # Optional: Allow free-form chat (default: false)
+  allow_user_skip=true         # Optional: Allow user to skip block (default: false)
+  allow_user_next=false        # Optional: Allow user to jump to next block (default: false)
+}}
+```
+
+### Function Arguments
+
+Functions can be configured with the following arguments:
+
+```
+{{#function
+  name="my_function"         # Optional: Unique identifier (auto-generated if not provided)
+  output="variable_name"     # Required: Variable to store function output
+  memory="memory_name"       # Optional: Array variable to accumulate outputs
+}}
+```
+
+### Callback Block Arguments
+
+Callback blocks are special blocks for handling user input:
+
+```
+{{#callback
+  role="user"               # Required: Role for the callback (usually "user")
+  content="var_name"        # Optional: Variable to store user input content
+  return="var1,var2"        # Required: Comma-separated variables to return
+}}
+```
+
+## 🌟 Why Magic Prompt?
+
+- **Simplicity**: Write complex chat flows in plain text
+- **Flexibility**: Adapt to any conversational use case
+- **Power**: Create sophisticated flows without programming
+- **Maintainability**: Easy to read, modify, and share
+- **Integration**: Works with popular all\* providers
