@@ -1,5 +1,3 @@
-import { demoTemplate } from "./demo-template";
-import { parseTemplate } from "./generate-logic";
 import { getResponseFromOpenAi } from "./demo-llm-warpper";
 import { chatStore } from "./immemory-chat-history";
 import {
@@ -36,7 +34,7 @@ const getResponseFromLlm = async (
     replacedMessages,
     block.maxTokens
   );
-  await logger?.debug?.("# LLM response", response);
+  await logger?.debug?.("magic-prompt: LLM response", response);
   return response;
 };
 
@@ -51,7 +49,7 @@ const executeFunction = async (
 ) => {
   const func = session.state.useTemplate.def.functions[functionName];
   if (func) {
-    await logger?.debug?.("# Execute function", functionName);
+    await logger?.debug?.("magic-prompt: Execute function", functionName);
     const response = await getResponseFromLlm(
       session,
       func,
@@ -59,7 +57,7 @@ const executeFunction = async (
       logger
     );
     await logger?.debug?.(
-      "# LLM Function response",
+      "magic-prompt:  LLM Function response",
       response,
       `Set variable ${func.outputVariable} with value`
     );
@@ -67,7 +65,7 @@ const executeFunction = async (
     if (func.memoryVariable) {
       chatStore.appendToMemory(session.id, func.memoryVariable, response);
       await logger?.debug?.(
-        `# Actual memory state for ${func.memoryVariable}`,
+        `magic-prompt:  Actual memory state for ${func.memoryVariable}`,
         session.state.variables[func.memoryVariable]
       );
     }
@@ -101,13 +99,13 @@ export const blockLoop = async (
 
   // check if we are in progress inside a template
   const inProgressTemplate = session.state.useTemplate?.blockIndex ?? 0;
-  await logger?.debug?.("# Start at block", inProgressTemplate);
+  await logger?.debug?.("magic-prompt: Start at block", inProgressTemplate);
 
   let lastResponse: null | string = null;
 
   // log a list of all blocks. only log the name
   await logger?.debug?.(
-    "# All blocks",
+    "magic-prompt:  All blocks",
     template.blocks.map((b) => b.name)
   );
 
@@ -115,17 +113,20 @@ export const blockLoop = async (
   for (let x = inProgressTemplate; x < template.blocks.length; null) {
     // set state
     chatStore.set(chatId, { blockIndex: x });
-    await logger?.debug?.("# Set state to", x);
+    await logger?.debug?.("magic-prompt: Set state to", x);
 
     // get the block
     const block = template.blocks[x];
-    await logger?.debug?.("# Execute block", block.name);
+    await logger?.debug?.("magic-prompt: Execute block", block.name);
 
     /**
      * Check if we have a setter
      */
     if (block.setter) {
-      await logger?.debug?.("# Set variables", block.setter.variables);
+      await logger?.debug?.(
+        "magic-prompt: Set variables",
+        block.setter.variables
+      );
       chatStore.mergeVariables(chatId, block.setter.variables);
       x++;
       continue;
@@ -135,7 +136,7 @@ export const blockLoop = async (
      * Check if we have a callback
      */
     if (block.callback) {
-      await logger?.debug?.("# triggered a callback");
+      await logger?.debug?.("magic-prompt: triggered a callback");
       // set the pointer to the next block!
       chatStore.set(chatId, { blockIndex: x + 1 });
       return <UserChatResponse>{
@@ -164,7 +165,7 @@ export const blockLoop = async (
     // execute functions on start
     if (block.executeOnStart) {
       await logger?.debug?.(
-        "# Execute functions on start",
+        "magic-prompt:  Execute functions on start",
         block.executeOnStart
       );
       for (const funcName of block.executeOnStart) {
@@ -195,7 +196,10 @@ export const blockLoop = async (
      */
     // execute functions on end
     if (block.executeOnEnd) {
-      await logger?.debug?.("# Execute functions on end", block.executeOnEnd);
+      await logger?.debug?.(
+        "magic-prompt: Execute functions on end",
+        block.executeOnEnd
+      );
       for (const funcName of block.executeOnEnd) {
         await executeFunction(session, funcName, llmWrapper, logger);
       }
@@ -211,31 +215,34 @@ export const blockLoop = async (
     if (block.conditionNext) {
       // call checker function
       // validate the result with the value
-      await logger?.debug?.("# Condition next was checked: ", false);
+      await logger?.debug?.(
+        "magic-prompt: Condition next was checked: ",
+        false
+      );
       goOn = false;
     }
 
     // go to next block or a block defined by name
     if (trigger?.skip) {
-      await logger?.debug?.("# User triggered a skip");
+      await logger?.debug?.("magic-prompt: User triggered a skip");
       x++;
     } else if ((block.next && goOn) || trigger?.next) {
-      await logger?.debug?.("# Go to block", block.next);
+      await logger?.debug?.("magic-prompt: Go to block", block.next);
       const ix = template.blocks.findIndex((b) => b.name === block.next);
       if (ix !== -1) {
-        await logger?.debug?.("# Set index to", ix);
+        await logger?.debug?.("magic-prompt: Set index to", ix);
         x = ix;
       }
     } else if (goOn) {
-      await logger?.debug?.("# Go to next block. auto-increment");
+      await logger?.debug?.("magic-prompt: Go to next block. auto-increment");
       x++;
     } else {
-      await logger?.debug?.("# Loop this block!");
+      await logger?.debug?.("magic-prompt: Loop this block!");
     }
   }
 
   // the loop is finished. return the last response
-  await logger?.debug?.("# Loop is finished. Return last response");
+  await logger?.debug?.("magic-prompt: Loop is finished. Return last response");
   return <UserChatResponse>{
     chatId,
     message: {
@@ -260,21 +267,21 @@ export async function initChatFromUi(
   chatId: string;
   result: UserChatResponse;
 }> {
-  await logger?.debug?.("Starting chat initialization", data);
+  await logger?.debug?.("magic-prompt: Starting chat initialization", data);
   let session = data.chatId ? chatStore.get(data.chatId) : null;
 
   if (!session && data.template) {
-    await logger?.debug?.("Template loaded. Create session");
+    await logger?.debug?.("magic-prompt: Template loaded. Create session");
     session = chatStore.create(data.template);
   } else if (!session) {
     await logger?.debug?.(
-      "No session found. Create new session without template"
+      "magic-prompt: No session found. Create new session without template"
     );
     session = chatStore.create();
   }
 
   if (session.state.useTemplate) {
-    await logger?.debug?.("Session with template found.");
+    await logger?.debug?.("magic-prompt: Session with template found.");
     const result = await blockLoop(
       session as ChatSessionWithTemplate,
       llmWrapper,
@@ -283,12 +290,6 @@ export async function initChatFromUi(
       data.usersVariables,
       logger
     );
-
-    // await logger?.debug?.(
-    //   session.state.memories,
-    //   session.state.variables,
-    //   session.state.useTemplate.blockIndex
-    // );
 
     return { chatId: session.id, result };
   } else {
