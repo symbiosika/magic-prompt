@@ -14,11 +14,6 @@ import {
 } from "./types";
 import { replaceVariables } from "./replace-variables";
 
-export const getTemplate = async (_templateName: string) => {
-  const template = await parseTemplate(demoTemplate);
-  return template;
-};
-
 /**
  * Block executor
  * This function will execute a single block
@@ -268,10 +263,9 @@ export async function initChatFromUi(
   await logger?.debug?.("Starting chat initialization", data);
   let session = data.chatId ? chatStore.get(data.chatId) : null;
 
-  if (!session && data.templateName) {
-    const template = await getTemplate(data.templateName);
+  if (!session && data.template) {
     await logger?.debug?.("Template loaded. Create session");
-    session = chatStore.create(template);
+    session = chatStore.create(data.template);
   } else if (!session) {
     await logger?.debug?.(
       "No session found. Create new session without template"

@@ -5,6 +5,8 @@ import { standardSingleLineParsers } from "./standard-parsers";
 import { standardPlaceholderParsers } from "./standard-parsers";
 import { TemplateChatLogger } from "./types";
 import { getResponseFromOpenAi } from "./demo-llm-warpper";
+import { parseTemplate } from "./generate-logic";
+import { demoTemplate } from "./demo-template";
 
 const parseTrigger = (input: string): { next: boolean; skip: boolean } => {
   const trigger = { next: false, skip: false };
@@ -48,9 +50,11 @@ async function startChat() {
     // clear the log file
     await fsPromises.writeFile("chat.log", "");
 
+    const template = await parseTemplate(demoTemplate);
+
     // Start initial chat
     let chatResponse = await templateChat.chat({
-      templateName: "demo",
+      template,
     });
 
     let chatId = chatResponse.chatId;

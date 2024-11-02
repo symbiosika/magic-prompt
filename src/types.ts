@@ -223,7 +223,7 @@ export type UserTrigger = {
 export type UserChatQuery = {
   chatId?: string;
   userMessage?: string;
-  templateName?: string;
+  template?: ParsedTemplateBlocks;
   trigger?: UserTrigger;
   usersVariables?: VariableDictionary;
 };
