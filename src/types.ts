@@ -54,6 +54,11 @@ export type BlockParser = {
   requiredArguments?: string[]; // a list of required arguments for the block type
 };
 
+export type PlaceholderArgumentDict = Record<
+  string,
+  string | number | boolean | undefined
+>;
+
 export type PlaceholderParser = {
   name: string;
   expression: RegExp; // e.g. /{{#url="([^"]+)"(?:\s+(?:comment)=(?:"[^"]*"|[^}\s]+))*}}/
@@ -66,7 +71,10 @@ export type PlaceholderParser = {
     multiple?: boolean;
     default?: string | number | boolean;
   }[];
-  // replacer function is needed here!
+  replacerFunction: (
+    match: string,
+    args: PlaceholderArgumentDict
+  ) => Promise<string>;
 };
 
 export interface ParsedTemplate {
@@ -192,3 +200,26 @@ export type UserTrigger = {
   skip?: boolean;
   next?: boolean;
 };
+
+/**
+ * Chat
+ */
+export type UserChatQuery = {
+  chatId?: string;
+  userMessage?: string;
+  templateName?: string;
+  trigger?: UserTrigger;
+  usersVariables?: VariableDictionary;
+};
+
+export type UserChatResponse = {
+  chatId: string;
+  message: {
+    role: "user" | "assistant";
+    content: string;
+  };
+  meta: any;
+  finished?: boolean;
+};
+
+export type TemplateChatLogger = (...items: any[]) => Promise<void>;

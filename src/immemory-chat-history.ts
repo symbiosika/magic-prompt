@@ -40,7 +40,7 @@ export interface ChatSessionWithoutTemplate extends BaseChatSession {
 
 export type ChatSession = ChatSessionWithTemplate | ChatSessionWithoutTemplate;
 
-class ChatHistoryStore {
+export class ChatHistoryStore {
   private sessions: Map<string, ChatSession> = new Map();
 
   constructor(private maxAgeHours: number = 48) {

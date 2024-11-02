@@ -1,4 +1,8 @@
-import { BlockParser, PlaceholderParser } from "./types";
+import {
+  BlockParser,
+  PlaceholderArgumentDict,
+  PlaceholderParser,
+} from "./types";
 
 export const standardBlockParsers: BlockParser[] = [
   {
@@ -29,6 +33,10 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
   {
     name: "set",
     expression: /{{#set\s+([^=\s]+)=(.+?)}}/g,
+    replacerFunction: async (match: string, args: PlaceholderArgumentDict) => {
+      // to do
+      return match;
+    },
   },
   {
     name: "url",
@@ -43,6 +51,10 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
         required: false,
       },
     ],
+    replacerFunction: async (match: string, args: PlaceholderArgumentDict) => {
+      // to do
+      return match;
+    },
   },
   {
     name: "image",
@@ -53,6 +65,10 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
         required: true,
       },
     ],
+    replacerFunction: async (match: string, args: PlaceholderArgumentDict) => {
+      // to do
+      return match;
+    },
   },
   {
     name: "similar_to",
@@ -108,6 +124,10 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
         type: "string",
       },
     ],
+    replacerFunction: async (match: string, args: PlaceholderArgumentDict) => {
+      // to do
+      return match;
+    },
   },
   {
     name: "knowledgebase",
@@ -144,6 +164,10 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
         type: "string",
       },
     ],
+    replacerFunction: async (match: string, args: PlaceholderArgumentDict) => {
+      // to do
+      return match;
+    },
   },
   {
     name: "file",
@@ -170,5 +194,9 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
         multiple: true,
       },
     ],
+    replacerFunction: async (match: string, args: PlaceholderArgumentDict) => {
+      // to do
+      return match;
+    },
   },
 ];

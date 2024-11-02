@@ -1,5 +1,34 @@
 import readline from "readline";
-import { initChatFromUi } from "./iterator";
+import { promises as fsPromises } from "fs";
+import { TemplateChat } from "./template-chat-class";
+import { standardSingleLineParsers } from "./standard-parsers";
+import { standardPlaceholderParsers } from "./standard-parsers";
+import { TemplateChatLogger } from "./types";
+
+const parseTrigger = (input: string): { next: boolean; skip: boolean } => {
+  const trigger = { next: false, skip: false };
+  if (input.toLowerCase().includes("skip")) trigger.skip = true;
+  if (input.toLowerCase().includes("next")) trigger.next = true;
+  return trigger;
+};
+
+const appendToLog: TemplateChatLogger = async (
+  ...items: any[]
+): Promise<void> => {
+  const formattedMessage =
+    items
+      .map((msg) =>
+        typeof msg === "object" ? JSON.stringify(msg, null, 2) : String(msg)
+      )
+      .join(" ") + "\n";
+  await fsPromises.appendFile("chat.log", formattedMessage);
+};
+
+const templateChat = new TemplateChat({
+  singleLineParsers: standardSingleLineParsers,
+  placeholderParsers: standardPlaceholderParsers,
+  logger: appendToLog,
+});
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -11,7 +40,7 @@ async function startChat() {
     console.log("Starting new chat...");
 
     // Start initial chat
-    let chatResponse = await initChatFromUi({
+    let chatResponse = await templateChat.chat({
       templateName: "demo",
     });
 
@@ -27,11 +56,14 @@ async function startChat() {
           rl.question("You: ", resolve);
         });
 
+        // parse if the user is using a trigger word "skip" or "next"
+        const trigger = parseTrigger(userInput);
+
         // Continue chat with user input
-        chatResponse = await initChatFromUi({
+        chatResponse = await templateChat.chat({
           chatId: chatId,
           userMessage: userInput,
-          // trigger: { next: true },
+          trigger,
         });
       }
     }
