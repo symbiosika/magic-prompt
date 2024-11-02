@@ -23,7 +23,7 @@ describe("ChatHistoryStore", () => {
         blocks: [],
         functions: {},
       };
-      const session = store.create(template);
+      const session = store.create({ useTemplate: template });
 
       expect(session.state.useTemplate).toBeDefined();
       expect(session.state.useTemplate!.def).toEqual(template);

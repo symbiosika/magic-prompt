@@ -7,6 +7,7 @@ import { TemplateChatLogger } from "./types";
 import { getResponseFromOpenAi } from "./demo-llm-warpper";
 import { parseTemplate } from "./generate-logic";
 import { demoTemplate } from "./demo-template";
+import { nanoid } from "nanoid";
 
 const parseTrigger = (input: string): { next: boolean; skip: boolean } => {
   const trigger = { next: false, skip: false };
@@ -49,12 +50,14 @@ async function startChat() {
     console.log("Starting new chat...");
     // clear the log file
     await fsPromises.writeFile("chat.log", "");
+    const id = nanoid(8);
 
     const template = await parseTemplate(demoTemplate);
 
     // Start initial chat
     let chatResponse = await templateChat.chat({
       template,
+      chatId: id,
     });
 
     let chatId = chatResponse.chatId;

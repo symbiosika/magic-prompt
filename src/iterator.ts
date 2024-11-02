@@ -272,12 +272,17 @@ export async function initChatFromUi(
 
   if (!session && data.template) {
     await logger?.debug?.("magic-prompt: Template loaded. Create session");
-    session = chatStore.create(data.template);
+    session = chatStore.create({
+      useTemplate: data.template,
+      chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
+    });
   } else if (!session) {
     await logger?.debug?.(
       "magic-prompt: No session found. Create new session without template"
     );
-    session = chatStore.create();
+    session = chatStore.create({
+      chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
+    });
   }
 
   if (session.state.useTemplate) {

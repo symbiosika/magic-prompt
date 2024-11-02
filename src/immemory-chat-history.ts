@@ -17,16 +17,19 @@ export class ChatHistoryStore {
     setInterval(() => this.cleanup(), 1000 * 60 * 60);
   }
 
-  create(useTemplate?: ParsedTemplateBlocks): ChatSession {
-    const chatId = nanoid(16);
+  create(options?: {
+    chatId?: string;
+    useTemplate?: ParsedTemplateBlocks;
+  }): ChatSession {
+    const chatId = options?.chatId ?? nanoid(16);
     const session = {
       id: chatId,
       actualChat: [],
       fullHistory: [],
       state: {
         variables: {},
-        useTemplate: useTemplate
-          ? { def: useTemplate, blockIndex: 0 }
+        useTemplate: options?.useTemplate
+          ? { def: options.useTemplate, blockIndex: 0 }
           : undefined,
       },
       createdAt: new Date(),
