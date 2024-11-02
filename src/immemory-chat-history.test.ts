@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, jest } from "bun:test";
-import { ChatHistoryStore, ChatMessage } from "./immemory-chat-history";
-import { ParsedTemplate, ParsedTemplateBlocks } from "./types";
+import { describe, it, expect, beforeEach } from "bun:test";
+import { ChatHistoryStore } from "./immemory-chat-history";
+import { ChatMessage, ParsedTemplateBlocks } from "./types";
 
 describe("ChatHistoryStore", () => {
   let store: ChatHistoryStore;
@@ -20,7 +20,6 @@ describe("ChatHistoryStore", () => {
       expect(session.fullHistory).toEqual([]);
       expect(session.state.useTemplate).toBeUndefined();
       expect(session.state.variables).toEqual({});
-      expect(session.state.memories).toEqual({});
     });
 
     it("should create a new chat session with template", () => {
@@ -99,7 +98,10 @@ describe("ChatHistoryStore", () => {
       store.appendToMemory(session.id, "testMemory", "value2");
 
       const updated = store.get(session.id)!;
-      expect(updated.state.memories.testMemory).toEqual(["value1", "value2"]);
+      expect(updated.state.variables["testMemory"]).toEqual([
+        "value1",
+        "value2",
+      ]);
     });
   });
 

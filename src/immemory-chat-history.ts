@@ -1,44 +1,13 @@
 import { nanoid } from "nanoid";
 import {
-  MemoryDictionary,
+  ChatMessage,
+  ChatSession,
+  ChatSessionWithTemplate,
   ParsedTemplateBlocks,
   VariableDictionary,
   VariableType,
+  VariableTypeInMemory,
 } from "./types";
-
-export type ChatMessage = {
-  role: "system" | "user" | "assistant";
-  content?: string | any;
-};
-
-export interface BaseChatSession {
-  id: string;
-  fullHistory: ChatMessage[];
-  actualChat: ChatMessage[];
-  createdAt: Date;
-  lastUsedAt: Date;
-}
-
-export interface ChatSessionWithTemplate extends BaseChatSession {
-  state: {
-    useTemplate: {
-      def: ParsedTemplateBlocks;
-      blockIndex: number;
-    };
-    variables: VariableDictionary;
-    memories: MemoryDictionary;
-  };
-}
-
-export interface ChatSessionWithoutTemplate extends BaseChatSession {
-  state: {
-    useTemplate: undefined;
-    variables: VariableDictionary;
-    memories: MemoryDictionary;
-  };
-}
-
-export type ChatSession = ChatSessionWithTemplate | ChatSessionWithoutTemplate;
 
 export class ChatHistoryStore {
   private sessions: Map<string, ChatSession> = new Map();
@@ -56,7 +25,6 @@ export class ChatHistoryStore {
       fullHistory: [],
       state: {
         variables: {},
-        memories: {},
         useTemplate: useTemplate
           ? { def: useTemplate, blockIndex: 0 }
           : undefined,
@@ -111,7 +79,13 @@ export class ChatHistoryStore {
     session.state.variables[key] = value;
   }
 
-  getVariable(chatId: string, key: string): VariableType {
+  mergeVariables(chatId: string, variables: VariableDictionary): void {
+    const session = this.sessions.get(chatId);
+    if (!session) throw new Error("Session not found");
+    session.state.variables = { ...session.state.variables, ...variables };
+  }
+
+  getVariable(chatId: string, key: string): VariableTypeInMemory {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     return session.state.variables[key];
@@ -120,9 +94,12 @@ export class ChatHistoryStore {
   appendToMemory(chatId: string, memoryKey: string, value: VariableType): void {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
-    if (!session.state.memories[memoryKey])
-      session.state.memories[memoryKey] = [];
-    session.state.memories[memoryKey].push(value);
+    if (
+      !session.state.variables[memoryKey] ||
+      !Array.isArray(session.state.variables[memoryKey])
+    )
+      session.state.variables[memoryKey] = [] as VariableTypeInMemory;
+    (session.state.variables[memoryKey] as VariableType[]).push(value);
   }
 
   cleanup(): void {

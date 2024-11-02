@@ -1,21 +1,44 @@
-import { ChatMessage } from "./immemory-chat-history";
-import { PlaceholderParser, VariableDictionary } from "./types";
+import {
+  ChatMessage,
+  PlaceholderParser,
+  TemplateChatLogger,
+  VariableDictionary,
+} from "./types";
 import { parseArgumentsWithoutLimits } from "./parse-arguments";
 
 /**
  * Find all variables {{var_name}} and replace them with the actual value
  */
-export const replaceVariables = (
+export const replaceVariables = async (
   messages: ChatMessage[],
-  variables: VariableDictionary
+  variables: VariableDictionary,
+  logger?: TemplateChatLogger
 ) => {
   const replacedMessages: ChatMessage[] = [];
   for (const message of messages) {
-    const replacedMessage = JSON.parse(JSON.stringify(message));
-    replacedMessage.content = replacedMessage.content.replace(
-      /{{\s*(\w+)\s*}}/g,
-      (match: string, p1: string) => variables[p1] || match
-    );
+    let replacedMessage = JSON.parse(JSON.stringify(message));
+    const matches = replacedMessage.content.match(/{{\s*(\w+)\s*}}/g);
+
+    if (matches) {
+      for (const match of matches) {
+        const variableName = match.replace(/{{\s*(\w+)\s*}}/, "$1");
+        const value = variables[variableName];
+
+        if (value) {
+          const returnValue = Array.isArray(value)
+            ? value.map((v) => `"${v}"`).join(", ")
+            : value;
+          await logger?.debug?.(`# Replacing "${match}" with "${returnValue}"`);
+          replacedMessage.content = replacedMessage.content.replace(
+            match,
+            returnValue
+          );
+        } else {
+          await logger?.debug?.(`# No replacement for "${match}"`);
+        }
+      }
+    }
+
     replacedMessages.push(replacedMessage);
   }
   return replacedMessages;
@@ -26,7 +49,8 @@ export const replaceVariables = (
  */
 export const replaceCustomPlaceholders = async (
   messages: ChatMessage[],
-  parsers: PlaceholderParser[]
+  parsers: PlaceholderParser[],
+  logger?: TemplateChatLogger
 ) => {
   const replacedMessages: ChatMessage[] = [];
   for (const message of messages) {
@@ -38,6 +62,7 @@ export const replaceCustomPlaceholders = async (
         for (const match of matches) {
           const args = parseArgumentsWithoutLimits(match, parser.name);
           const replacement = await parser.replacerFunction(match, args);
+          await logger?.debug?.(`# Replacing "${match}" with "${replacement}"`);
           replacedMessage.content = replacedMessage.content.replace(
             match,
             replacement

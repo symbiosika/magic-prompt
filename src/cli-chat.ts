@@ -4,6 +4,7 @@ import { TemplateChat } from "./template-chat-class";
 import { standardSingleLineParsers } from "./standard-parsers";
 import { standardPlaceholderParsers } from "./standard-parsers";
 import { TemplateChatLogger } from "./types";
+import { getResponseFromOpenAi } from "./demo-llm-warpper";
 
 const parseTrigger = (input: string): { next: boolean; skip: boolean } => {
   const trigger = { next: false, skip: false };
@@ -12,9 +13,7 @@ const parseTrigger = (input: string): { next: boolean; skip: boolean } => {
   return trigger;
 };
 
-const appendToLog: TemplateChatLogger = async (
-  ...items: any[]
-): Promise<void> => {
+const log = async (...items: any[]): Promise<void> => {
   const formattedMessage =
     items
       .map((msg) =>
@@ -24,9 +23,16 @@ const appendToLog: TemplateChatLogger = async (
   await fsPromises.appendFile("chat.log", formattedMessage);
 };
 
+const appendToLog: TemplateChatLogger = {
+  debug: log,
+  info: log,
+  error: log,
+};
+
 const templateChat = new TemplateChat({
   singleLineParsers: standardSingleLineParsers,
   placeholderParsers: standardPlaceholderParsers,
+  llmWrapper: getResponseFromOpenAi,
   logger: appendToLog,
 });
 
@@ -37,7 +43,10 @@ const rl = readline.createInterface({
 
 async function startChat() {
   try {
+    console.clear();
     console.log("Starting new chat...");
+    // clear the log file
+    await fsPromises.writeFile("chat.log", "");
 
     // Start initial chat
     let chatResponse = await templateChat.chat({
@@ -51,6 +60,9 @@ async function startChat() {
       console.log("\nAI:", chatResponse.result.message.content);
 
       if (chatResponse.result.meta.variables) {
+        console.clear();
+        console.log("AI:", chatResponse.result.message.content);
+
         // Get user input if variables are requested
         const userInput = await new Promise<string>((resolve) => {
           rl.question("You: ", resolve);
@@ -69,11 +81,14 @@ async function startChat() {
     }
 
     // Show final result
+    console.clear();
     console.log("\nFinal Response:", chatResponse.result.message.content);
     rl.close();
+    process.exit(0);
   } catch (error) {
     console.error("Error:", error);
     rl.close();
+    process.exit(1);
   }
 }
 

@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { nanoid } from "nanoid";
-import { ChatMessage } from "./immemory-chat-history";
+import { ChatMessage } from "./types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -12,8 +12,8 @@ export const getResponseFromOpenAi = async (
 ): Promise<string> => {
   console.log("chat with LLM", messages);
   // wait 2 seconds
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return "return from LLM " + nanoid(16);
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
+  // return "return from LLM " + nanoid(16);
 
   const completion = await openai.chat.completions.create({
     messages: messages as any,

@@ -31,8 +31,17 @@ export type ParsedMessage = Message & {
 };
 
 export type VariableType = string | number | boolean | undefined;
-export type VariableDictionary = Record<string, VariableType>;
-export type MemoryDictionary = Record<string, VariableType[]>;
+
+export type VariableTypeInMemory =
+  | string
+  | string[]
+  | number
+  | number[]
+  | boolean
+  | boolean[]
+  | undefined;
+
+export type VariableDictionary = Record<string, VariableTypeInMemory>;
 
 export type RawBlock = {
   type: string;
@@ -222,4 +231,45 @@ export type UserChatResponse = {
   finished?: boolean;
 };
 
-export type TemplateChatLogger = (...items: any[]) => Promise<void>;
+export type TemplateChatLogger = {
+  debug?: (...items: any[]) => Promise<void>;
+  info?: (...items: any[]) => Promise<void>;
+  error?: (...items: any[]) => Promise<void>;
+};
+
+export type LlmWrapper = (
+  messages: ChatMessage[],
+  maxTokens?: number
+) => Promise<string>;
+
+export type ChatMessage = {
+  role: "system" | "user" | "assistant";
+  content?: string | any;
+};
+
+export interface BaseChatSession {
+  id: string;
+  fullHistory: ChatMessage[];
+  actualChat: ChatMessage[];
+  createdAt: Date;
+  lastUsedAt: Date;
+}
+
+export interface ChatSessionWithTemplate extends BaseChatSession {
+  state: {
+    useTemplate: {
+      def: ParsedTemplateBlocks;
+      blockIndex: number;
+    };
+    variables: VariableDictionary;
+  };
+}
+
+export interface ChatSessionWithoutTemplate extends BaseChatSession {
+  state: {
+    useTemplate: undefined;
+    variables: VariableDictionary;
+  };
+}
+
+export type ChatSession = ChatSessionWithTemplate | ChatSessionWithoutTemplate;

@@ -75,8 +75,8 @@ const parseCallback = (block: BlockWithMessages): ParsedBlock["callback"] => {
  *  next=next_question
  *  condition_next_value=none
  *  condition_next_checker=none
- *  executeOnStart=func1,func2
- *  executeOnEnd=func3,func4
+ *  execute_on_start=func1,func2
+ *  execute_on_end=func3,func4
  *  clear_on_start=true
  *  clear_on_end=false
  *  max_tokens=1
@@ -92,8 +92,8 @@ const parseBlock = (block: BlockWithMessages): ParsedBlock => {
 
   const parsedBlock: ParsedBlock = {
     name: args.name ? String(args.name) : nanoid(),
-    executeOnStart: parseExecuteFunctions(args.executeOnStart),
-    executeOnEnd: parseExecuteFunctions(args.executeOnEnd),
+    executeOnStart: parseExecuteFunctions(args.execute_on_start),
+    executeOnEnd: parseExecuteFunctions(args.execute_on_end),
     next: isEffectivelyUndefined(args.next) ? undefined : String(args.next),
     conditionNext: parseConditionNext(
       args.condition_next_value,

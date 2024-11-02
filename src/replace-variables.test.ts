@@ -3,15 +3,15 @@ import {
   replaceCustomPlaceholders,
   replaceVariables,
 } from "./replace-variables";
-import { ChatMessage } from "./immemory-chat-history";
 import {
+  ChatMessage,
   PlaceholderArgumentDict,
   PlaceholderParser,
   VariableDictionary,
 } from "./types";
 
 describe("replaceVariables", () => {
-  it("should replace variables in message content", () => {
+  it("should replace variables in message content", async () => {
     const messages: ChatMessage[] = [
       { role: "user", content: "Hello {{name}}, your age is {{age}}" },
       { role: "assistant", content: "No variables here" },
@@ -23,7 +23,7 @@ describe("replaceVariables", () => {
       age: "25",
     };
 
-    const result = replaceVariables(messages, variables);
+    const result = await replaceVariables(messages, variables);
 
     expect(result).toEqual([
       { role: "user", content: "Hello John, your age is 25" },
@@ -32,7 +32,7 @@ describe("replaceVariables", () => {
     ]);
   });
 
-  it("should handle whitespace in variable syntax", () => {
+  it("should handle whitespace in variable syntax", async () => {
     const messages: ChatMessage[] = [
       { role: "user", content: "Hello {{  name  }}" },
     ];
@@ -41,12 +41,12 @@ describe("replaceVariables", () => {
       name: "John",
     };
 
-    const result = replaceVariables(messages, variables);
+    const result = await replaceVariables(messages, variables);
 
     expect(result).toEqual([{ role: "user", content: "Hello John" }]);
   });
 
-  it("should not modify original messages", () => {
+  it("should not modify original messages", async () => {
     const messages: ChatMessage[] = [
       { role: "user", content: "Hello {{name}}" },
     ];
@@ -55,7 +55,7 @@ describe("replaceVariables", () => {
       name: "John",
     };
 
-    const result = replaceVariables(messages, variables);
+    const result = await replaceVariables(messages, variables);
 
     expect(messages[0].content).toBe("Hello {{name}}");
     expect(result[0].content).toBe("Hello John");

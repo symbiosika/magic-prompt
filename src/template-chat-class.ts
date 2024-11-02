@@ -9,6 +9,7 @@ import {
   UserChatQuery,
   UserChatResponse,
   TemplateChatLogger,
+  LlmWrapper,
 } from "./types";
 import { standardBlockParsers } from "./standard-parsers";
 
@@ -17,23 +18,19 @@ export class TemplateChat {
   private placeholderParsers: PlaceholderParser[];
   private singleLineParsers: BlockParser[];
   private logger?: TemplateChatLogger;
+  private llmWrapper: LlmWrapper;
 
-  constructor(options?: {
+  constructor(options: {
     placeholderParsers?: PlaceholderParser[];
     singleLineParsers: BlockParser[];
+    llmWrapper: LlmWrapper;
     logger?: TemplateChatLogger;
   }) {
     this.blockParsers = [...standardBlockParsers];
     this.placeholderParsers = options?.placeholderParsers ?? [];
     this.singleLineParsers = options?.singleLineParsers ?? [];
     this.logger = options?.logger;
-  }
-
-  // Neue Logging Methode
-  async log(...items: any[]): Promise<void> {
-    if (this.logger) {
-      await this.logger(...items);
-    }
+    this.llmWrapper = options.llmWrapper;
   }
 
   /**
@@ -71,6 +68,6 @@ export class TemplateChat {
     chatId: string;
     result: UserChatResponse;
   }> {
-    return initChatFromUi(data, this.log.bind(this));
+    return initChatFromUi(data, this.llmWrapper, this.logger);
   }
 }
