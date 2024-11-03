@@ -322,11 +322,16 @@ export async function initChatFromUi(
   let session = data.chatId ? chatStore.get(data.chatId) : null;
 
   if (!session && data.template) {
-    await logger?.debug?.("magic-prompt: Template loaded. Create session");
+    await logger?.debug?.(
+      `magic-prompt: No session found. Create new session with id ${data.chatId}`
+    );
     session = chatStore.create({
       useTemplate: data.template,
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
     });
+    await logger?.debug?.(
+      `magic-prompt: New session created with id ${session.id}`
+    );
   } else if (!session) {
     await logger?.debug?.(
       "magic-prompt: No session found. Create new session without template"

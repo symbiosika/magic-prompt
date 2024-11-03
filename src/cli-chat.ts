@@ -68,6 +68,7 @@ async function startChat() {
     // clear the log file
     await fsPromises.writeFile("chat.log", "");
     const id = nanoid(8);
+    await log(`Init Chat ID: ${id}`);
 
     // const template = await parseTemplate(demoTemplate);
     const template = await parseTemplate(demoTemplateAssistant);
