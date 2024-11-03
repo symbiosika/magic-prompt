@@ -21,6 +21,10 @@ export const parseSpecialPlaceholders = (
   const results: Placeholder[] = [];
 
   placeholderParsers.forEach((parser) => {
+    if (!parser.expression) {
+      parser.expression = new RegExp(`{{#${parser.name}([^}]*?)}}`, "g");
+    }
+
     const matches = content.match(parser.expression);
     if (matches) {
       matches.forEach((match) => {

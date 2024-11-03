@@ -1,6 +1,5 @@
 import OpenAI from "openai";
-import { nanoid } from "nanoid";
-import { ChatMessage } from "./types";
+import { ChatMessage, TemplateChatLogger } from "./types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,13 +7,10 @@ const openai = new OpenAI({
 
 export const getResponseFromOpenAi = async (
   messages: ChatMessage[],
-  maxTokens?: number
+  maxTokens?: number,
+  logger?: TemplateChatLogger
 ): Promise<string> => {
-  console.log("chat with LLM", messages);
-  // wait 2 seconds
-  // await new Promise((resolve) => setTimeout(resolve, 1000));
-  // return "return from LLM " + nanoid(16);
-
+  await logger?.debug?.("magic-prompt: LLM call", messages);
   const completion = await openai.chat.completions.create({
     messages: messages as any,
     model: "gpt-4-turbo",

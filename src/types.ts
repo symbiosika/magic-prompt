@@ -71,7 +71,7 @@ export type PlaceholderArgumentDict = Record<
 
 export type PlaceholderParser = {
   name: string;
-  expression: RegExp; // e.g. /{{#url="([^"]+)"(?:\s+(?:comment)=(?:"[^"]*"|[^}\s]+))*}}/
+  expression?: RegExp; // e.g. /{{#url="([^"]+)"(?:\s+(?:comment)=(?:"[^"]*"|[^}\s]+))*}}/
   requiredArguments?: string[]; // a simple list of required arguments for the placeholder
   arguments?: {
     // a complex list of arguments for the placeholder

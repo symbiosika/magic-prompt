@@ -55,18 +55,29 @@ export const replaceCustomPlaceholders = async (
   logger?: TemplateChatLogger
 ) => {
   const replacedMessages: ChatMessage[] = [];
+  // await logger?.debug?.(
+  //   `magic-prompt: Replacing custom placeholders. Using ${parsers.length} parsers`
+  // );
+
   for (const message of messages) {
     let replacedMessage = JSON.parse(JSON.stringify(message));
+
     for (const parser of parsers) {
+      //await logger?.debug?.(`magic-prompt: Trying to replace ${parser.name}`);
+      if (!parser.expression) {
+        parser.expression = new RegExp(`{{#${parser.name}([^}]*?)}}`, "g");
+      }
+
       const matches = replacedMessage.content.match(parser.expression);
       if (matches) {
+        //await logger?.debug?.(`magic-prompt: Found ${matches.length} matches`);
         // Process all matches sequentially
         for (const match of matches) {
           const args = parseArgumentsWithoutLimits(match, parser.name);
           const replacement = await parser.replacerFunction(match, args);
-          await logger?.debug?.(
-            `magic-prompt:  Replacing "${match}" with "${replacement}"`
-          );
+          // await logger?.debug?.(
+          //   `magic-prompt:  Replacing "${match}" with "${replacement}"`
+          // );
           replacedMessage.content = replacedMessage.content.replace(
             match,
             replacement

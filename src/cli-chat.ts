@@ -3,11 +3,28 @@ import { promises as fsPromises } from "fs";
 import { TemplateChat } from "./template-chat-class";
 import { standardSingleLineParsers } from "./standard-parsers";
 import { standardPlaceholderParsers } from "./standard-parsers";
-import { TemplateChatLogger } from "./types";
+import {
+  PlaceholderArgumentDict,
+  PlaceholderParser,
+  TemplateChatLogger,
+} from "./types";
 import { getResponseFromOpenAi } from "./demo-llm-warpper";
 import { parseTemplate } from "./generate-logic";
 import { demoTemplate } from "./demo-template";
+import { demoTemplateAssistant } from "./demo-template-assistant";
 import { nanoid } from "nanoid";
+
+export const demoPlaceholderParsers: PlaceholderParser[] = [
+  {
+    name: "demo",
+    replacerFunction: async (
+      match: string,
+      args: PlaceholderArgumentDict
+    ): Promise<string> => {
+      return "THIS IS A DEMO";
+    },
+  },
+];
 
 const parseTrigger = (input: string): { next: boolean; skip: boolean } => {
   const trigger = { next: false, skip: false };
@@ -34,7 +51,7 @@ const appendToLog: TemplateChatLogger = {
 
 const templateChat = new TemplateChat({
   singleLineParsers: standardSingleLineParsers,
-  placeholderParsers: standardPlaceholderParsers,
+  placeholderParsers: demoPlaceholderParsers,
   llmWrapper: getResponseFromOpenAi,
   logger: appendToLog,
 });
@@ -52,7 +69,8 @@ async function startChat() {
     await fsPromises.writeFile("chat.log", "");
     const id = nanoid(8);
 
-    const template = await parseTemplate(demoTemplate);
+    // const template = await parseTemplate(demoTemplate);
+    const template = await parseTemplate(demoTemplateAssistant);
 
     // Start initial chat
     let chatResponse = await templateChat.chat({
@@ -62,8 +80,10 @@ async function startChat() {
 
     let chatId = chatResponse.chatId;
 
+    let cnt = 0;
+
     // Continue chat until finished
-    while (!chatResponse.result.finished) {
+    while (!chatResponse.result.finished && cnt < 50) {
       console.log("\nAI:", chatResponse.result.message.content);
 
       if (chatResponse.result.meta.variables) {
@@ -85,6 +105,7 @@ async function startChat() {
           trigger,
         });
       }
+      cnt++; // prevent infinite loop
     }
 
     // Show final result

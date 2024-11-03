@@ -1,16 +1,19 @@
-import { getResponseFromOpenAi } from "./demo-llm-warpper";
 import { chatStore } from "./immemory-chat-history";
 import {
   ChatSessionWithTemplate,
   LlmWrapper,
   ParsedBlock,
+  PlaceholderParser,
   TemplateChatLogger,
   UserChatQuery,
   UserChatResponse,
   UserTrigger,
   VariableDictionary,
 } from "./types";
-import { replaceVariables } from "./replace-variables";
+import {
+  replaceCustomPlaceholders,
+  replaceVariables,
+} from "./replace-variables";
 
 /**
  * Block executor
@@ -20,20 +23,36 @@ const getResponseFromLlm = async (
   session: ChatSessionWithTemplate,
   block: ParsedBlock,
   llmWrapper: LlmWrapper,
-  logger?: TemplateChatLogger
+  logger: TemplateChatLogger | undefined,
+  placeholderParsers: PlaceholderParser[]
 ): Promise<string> => {
   // replace all placeholders in all messages
-  const replacedMessages = await replaceVariables(
+  let replacedBlockMessages = await replaceVariables(
     block.messages,
     session.state.variables,
     logger
   );
+  replacedBlockMessages = await replaceCustomPlaceholders(
+    replacedBlockMessages,
+    placeholderParsers,
+    logger
+  );
+
+  // Combine actualChat with block messages
+  const allMessages = [...(session.actualChat ?? []), ...replacedBlockMessages];
+  await logger?.debug?.(
+    "magic-prompt: messages",
+    allMessages.map((m) => `${m.role}: "${m.content}"`)
+  );
 
   // call the llm
-  const response = await getResponseFromOpenAi(
-    replacedMessages,
-    block.maxTokens
-  );
+  const response = await llmWrapper(allMessages, block.maxTokens);
+  allMessages.push({ role: "assistant", content: response });
+
+  // save all messages to actualChat
+  chatStore.set(session.id, { appendToHistory: replacedBlockMessages });
+  chatStore.set(session.id, { actualChat: allMessages });
+
   await logger?.debug?.("magic-prompt: LLM response", response);
   return response;
 };
@@ -45,7 +64,8 @@ const executeFunction = async (
   session: ChatSessionWithTemplate,
   functionName: string,
   llmWrapper: LlmWrapper,
-  logger?: TemplateChatLogger
+  logger: TemplateChatLogger | undefined,
+  placeholderParsers: PlaceholderParser[]
 ) => {
   const func = session.state.useTemplate.def.functions[functionName];
   if (func) {
@@ -54,7 +74,8 @@ const executeFunction = async (
       session,
       func,
       llmWrapper,
-      logger
+      logger,
+      placeholderParsers
     );
     await logger?.debug?.(
       "magic-prompt:  LLM Function response",
@@ -83,10 +104,11 @@ const executeFunction = async (
 export const blockLoop = async (
   session: ChatSessionWithTemplate,
   llmWrapper: LlmWrapper,
-  userMessage?: string,
-  trigger?: UserTrigger,
-  usersVariables?: VariableDictionary,
-  logger?: TemplateChatLogger
+  userMessage: string | undefined,
+  trigger: UserTrigger | undefined,
+  usersVariables: VariableDictionary | undefined,
+  logger: TemplateChatLogger | undefined,
+  placeholderParsers: PlaceholderParser[]
 ) => {
   const chatId = session.id;
   const template = session.state.useTemplate.def;
@@ -169,7 +191,13 @@ export const blockLoop = async (
         block.executeOnStart
       );
       for (const funcName of block.executeOnStart) {
-        await executeFunction(session, funcName, llmWrapper, logger);
+        await executeFunction(
+          session,
+          funcName,
+          llmWrapper,
+          logger,
+          placeholderParsers
+        );
       }
     }
 
@@ -180,9 +208,9 @@ export const blockLoop = async (
       session,
       block,
       llmWrapper,
-      logger
+      logger,
+      placeholderParsers
     );
-    lastResponse = response;
     // set output variables in state
     if (block.outputVariable) {
       chatStore.setVariable(chatId, block.outputVariable, response);
@@ -190,6 +218,7 @@ export const blockLoop = async (
     if (block.memoryVariable) {
       chatStore.appendToMemory(chatId, block.memoryVariable, response);
     }
+    lastResponse = response;
 
     /**
      * Ending the block
@@ -201,7 +230,13 @@ export const blockLoop = async (
         block.executeOnEnd
       );
       for (const funcName of block.executeOnEnd) {
-        await executeFunction(session, funcName, llmWrapper, logger);
+        await executeFunction(
+          session,
+          funcName,
+          llmWrapper,
+          logger,
+          placeholderParsers
+        );
       }
     }
 
@@ -220,6 +255,21 @@ export const blockLoop = async (
         false
       );
       goOn = false;
+    }
+    if (block.allowOpenChat && !trigger?.skip && !trigger?.next) {
+      await logger?.debug?.("magic-prompt: open chat. iterate itself");
+      // callback to user here
+      return <UserChatResponse>{
+        chatId,
+        message: {
+          role: "assistant",
+          content: response,
+        },
+        meta: {
+          variables: ["users_input"],
+        },
+        finished: false,
+      };
     }
 
     // go to next block or a block defined by name
@@ -262,7 +312,8 @@ export const blockLoop = async (
 export async function initChatFromUi(
   data: UserChatQuery,
   llmWrapper: LlmWrapper,
-  logger?: TemplateChatLogger
+  logger: TemplateChatLogger | undefined,
+  placeholderParsers: PlaceholderParser[]
 ): Promise<{
   chatId: string;
   result: UserChatResponse;
@@ -293,7 +344,8 @@ export async function initChatFromUi(
       data.userMessage,
       data.trigger,
       data.usersVariables,
-      logger
+      logger,
+      placeholderParsers
     );
 
     return { chatId: session.id, result };

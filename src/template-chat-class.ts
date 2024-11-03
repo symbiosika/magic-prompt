@@ -68,6 +68,11 @@ export class TemplateChat {
     chatId: string;
     result: UserChatResponse;
   }> {
-    return initChatFromUi(data, this.llmWrapper, this.logger);
+    return initChatFromUi(
+      data,
+      this.llmWrapper,
+      this.logger,
+      this.placeholderParsers
+    );
   }
 }
