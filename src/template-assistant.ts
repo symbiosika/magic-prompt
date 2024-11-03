@@ -1,14 +1,15 @@
-export const demoTemplateAssistant = `
+export const assistantTemplate = `
 {{#block
-  name=init  
-}}  
+  name=init
+}}
   {{#role=assistant}}
     You are a helpful assistant and will help the user with his questions.
     You will answer short and to the point. You will answer to everything.
-  {{/role}}  
+    Your answer will be in the language of the user.
+  {{/role}}
 {{/block}}
 
-{{#set init_message="Hello, how can I help you today?"}}
+{{#set init_message="Hello. How can I help you today?"}}
 
 {{#callback role=assistant content=init_message return=users_input}}
 

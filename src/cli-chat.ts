@@ -10,8 +10,8 @@ import {
 } from "./types";
 import { getResponseFromOpenAi } from "./demo-llm-warpper";
 import { parseTemplate } from "./generate-logic";
-import { demoTemplate } from "./demo-template";
-import { demoTemplateAssistant } from "./demo-template-assistant";
+import { demoTemplate } from "./template-demo";
+import { assistantTemplate } from "./template-assistant";
 import { nanoid } from "nanoid";
 
 export const demoPlaceholderParsers: PlaceholderParser[] = [
@@ -71,11 +71,11 @@ async function startChat() {
     await log(`Init Chat ID: ${id}`);
 
     // const template = await parseTemplate(demoTemplate);
-    const template = await parseTemplate(demoTemplateAssistant);
+    const template = await parseTemplate(assistantTemplate);
 
     // Start initial chat
     let chatResponse = await templateChat.chat({
-      template,
+      template: undefined, // template
       chatId: id,
     });
 

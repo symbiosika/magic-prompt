@@ -14,6 +14,9 @@ import {
   replaceCustomPlaceholders,
   replaceVariables,
 } from "./replace-variables";
+import { parseTemplateToBlocks } from "./generate-logic";
+import { parseTemplateRaw } from "./generate-raw-blocks";
+import { assistantTemplate } from "./template-assistant";
 
 /**
  * Block executor
@@ -336,25 +339,26 @@ export async function initChatFromUi(
     await logger?.debug?.(
       "magic-prompt: No session found. Create new session without template"
     );
+    const jsonTemplate = await parseTemplateRaw(assistantTemplate, {
+      placeholderParsers,
+    });
+    const blocks = parseTemplateToBlocks(jsonTemplate);
     session = chatStore.create({
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
+      useTemplate: blocks,
     });
   }
 
-  if (session.state.useTemplate) {
-    await logger?.debug?.("magic-prompt: Session with template found.");
-    const result = await blockLoop(
-      session as ChatSessionWithTemplate,
-      llmWrapper,
-      data.userMessage,
-      data.trigger,
-      data.usersVariables,
-      logger,
-      placeholderParsers
-    );
+  await logger?.debug?.("magic-prompt: Session with template found.");
+  const result = await blockLoop(
+    session as ChatSessionWithTemplate,
+    llmWrapper,
+    data.userMessage,
+    data.trigger,
+    data.usersVariables,
+    logger,
+    placeholderParsers
+  );
 
-    return { chatId: session.id, result };
-  } else {
-    throw new Error("Chat without template not supported");
-  }
+  return { chatId: session.id, result };
 }
