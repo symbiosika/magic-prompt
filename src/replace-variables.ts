@@ -26,7 +26,7 @@ export const replaceVariables = async (
 
         if (value) {
           const returnValue = Array.isArray(value)
-            ? value.map((v) => `"${v}"`).join(", ")
+            ? value.map((v) => `"${v}"`).join("\n\n")
             : value;
           await logger?.debug?.(
             `magic-prompt:  Replacing "${match}" with "${returnValue}"`
@@ -59,6 +59,7 @@ export const replaceCustomPlaceholders = async (
   // await logger?.debug?.(
   //   `magic-prompt: Replacing custom placeholders. Using ${parsers.length} parsers`
   // );
+  let skipThisBlock = false;
 
   for (const message of messages) {
     let replacedMessage = JSON.parse(JSON.stringify(message));
@@ -80,17 +81,18 @@ export const replaceCustomPlaceholders = async (
             args,
             variables
           );
-          // await logger?.debug?.(
-          //   `magic-prompt:  Replacing "${match}" with "${replacement}"`
-          // );
+          skipThisBlock = replacement.skipThisBlock ?? false;
           replacedMessage.content = replacedMessage.content.replace(
             match,
-            replacement
+            replacement.content
           );
         }
       }
     }
     replacedMessages.push(replacedMessage);
   }
-  return replacedMessages;
+  return {
+    replacedMessages,
+    skipThisBlock,
+  };
 };

@@ -22,8 +22,13 @@ export const demoPlaceholderParsers: PlaceholderParser[] = [
       match: string,
       args: PlaceholderArgumentDict,
       variables: VariableDictionaryInMemory
-    ): Promise<string> => {
-      return "THIS IS A DEMO";
+    ): Promise<{
+      content: string;
+      continue?: boolean;
+    }> => {
+      return {
+        content: "THIS IS A DEMO",
+      };
     },
   },
 ];

@@ -80,7 +80,9 @@ describe("replaceCustomPlaceholders", () => {
           match: string,
           args: PlaceholderArgumentDict
         ) => {
-          return `${args.test}-${args.test2}`;
+          return {
+            content: `${args.test}-${args.test2}`,
+          };
         },
       },
     ];
@@ -110,7 +112,9 @@ describe("replaceCustomPlaceholders", () => {
           match: string,
           args: PlaceholderArgumentDict
         ) => {
-          return args.test + "";
+          return {
+            content: args.test + "",
+          };
         },
       },
     ];
@@ -139,7 +143,9 @@ describe("replaceCustomPlaceholders", () => {
           match: string,
           args: PlaceholderArgumentDict
         ) => {
-          return args.test + "";
+          return {
+            content: args.test + "",
+          };
         },
       },
     ];
@@ -168,7 +174,9 @@ describe("replaceCustomPlaceholders", () => {
           match: string,
           args: PlaceholderArgumentDict
         ) => {
-          return args.test + "";
+          return {
+            content: args.test + "",
+          };
         },
       },
     ];

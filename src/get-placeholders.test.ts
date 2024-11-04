@@ -30,7 +30,9 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
       variables: VariableDictionaryInMemory
     ) => {
       // to do
-      return match;
+      return {
+        content: match,
+      };
     },
   },
 ];

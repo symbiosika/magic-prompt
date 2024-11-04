@@ -85,7 +85,10 @@ export type PlaceholderParser = {
     match: string,
     args: PlaceholderArgumentDict,
     variables: VariableDictionaryInMemory
-  ) => Promise<string>;
+  ) => Promise<{
+    content: string;
+    skipThisBlock?: boolean;
+  }>;
 };
 
 export interface ParsedTemplate {

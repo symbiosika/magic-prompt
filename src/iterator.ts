@@ -20,6 +20,16 @@ import { parseTemplateRaw } from "./generate-raw-blocks";
 import { assistantTemplate } from "./template-assistant";
 
 /**
+ * Ensures the content is always a string, even if the input is an array
+ */
+const ensureString = (content: unknown): string => {
+  if (Array.isArray(content)) {
+    return content.join("\n");
+  }
+  return String(content || "");
+};
+
+/**
  * Block executor
  * This function will execute a single block
  */
@@ -29,19 +39,30 @@ const getResponseFromLlm = async (
   llmWrapper: LlmWrapper,
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[]
-): Promise<string> => {
+): Promise<{
+  content: string;
+  skipThisBlock?: boolean;
+}> => {
   // replace all placeholders in all messages
-  let replacedBlockMessages = await replaceVariables(
+  const replacedBlockMessagesStep1 = await replaceVariables(
     block.messages,
     session.state.variables,
     logger
   );
-  replacedBlockMessages = await replaceCustomPlaceholders(
-    replacedBlockMessages,
-    placeholderParsers,
-    session.state.variables,
-    logger
-  );
+  const { replacedMessages: replacedBlockMessages, skipThisBlock } =
+    await replaceCustomPlaceholders(
+      replacedBlockMessagesStep1,
+      placeholderParsers,
+      session.state.variables,
+      logger
+    );
+
+  if (skipThisBlock) {
+    return {
+      content: "",
+      skipThisBlock,
+    };
+  }
 
   // Combine actualChat with block messages
   const allMessages = [...(session.actualChat ?? []), ...replacedBlockMessages];
@@ -59,7 +80,9 @@ const getResponseFromLlm = async (
   chatStore.set(session.id, { actualChat: allMessages });
 
   await logger?.debug?.("magic-prompt: LLM response", response);
-  return response;
+  return {
+    content: response,
+  };
 };
 
 /**
@@ -75,13 +98,18 @@ const executeFunction = async (
   const func = session.state.useTemplate.def.functions[functionName];
   if (func) {
     await logger?.debug?.("magic-prompt: Execute function", functionName);
-    const response = await getResponseFromLlm(
+    const { content: response, skipThisBlock } = await getResponseFromLlm(
       session,
       func,
       llmWrapper,
       logger,
       placeholderParsers
     );
+
+    if (skipThisBlock) {
+      return { skipThisBlock };
+    }
+
     await logger?.debug?.(
       "magic-prompt:  LLM Function response",
       response,
@@ -96,7 +124,7 @@ const executeFunction = async (
       );
     }
   }
-  return null;
+  return {};
 };
 
 /**
@@ -142,7 +170,7 @@ export const blockLoop = async (
   for (let x = inProgressTemplate; x < template.blocks.length; null) {
     // set state
     chatStore.set(chatId, { blockIndex: x });
-    await logger?.debug?.("magic-prompt: Set state to", x);
+    await logger?.debug?.(`magic-prompt: Set blockIndex to ${x}`);
     cnt++;
     if (cnt > loopLimit) {
       throw new Error("Loop limit reached");
@@ -177,7 +205,9 @@ export const blockLoop = async (
         message: {
           role: "assistant",
           content: block.callback.contentVariable
-            ? chatStore.getVariable(chatId, block.callback.contentVariable)
+            ? ensureString(
+                chatStore.getVariable(chatId, block.callback.contentVariable)
+              )
             : "",
         },
         meta: {
@@ -229,13 +259,18 @@ export const blockLoop = async (
     /**
      * Talk to LLM
      */
-    const response = await getResponseFromLlm(
+    const { content: response, skipThisBlock } = await getResponseFromLlm(
       session,
       block,
       llmWrapper,
       logger,
       placeholderParsers
     );
+    if (skipThisBlock) {
+      x++;
+      await logger?.debug?.(`Skipping block was forced`);
+      continue;
+    }
     // set output variables in state
     if (block.outputVariable) {
       chatStore.setVariable(chatId, block.outputVariable, response);
