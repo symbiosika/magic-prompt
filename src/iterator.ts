@@ -68,7 +68,7 @@ const getResponseFromLlm = async (
   const allMessages = [...(session.actualChat ?? []), ...replacedBlockMessages];
   await logger?.debug?.(
     "magic-prompt: messages",
-    allMessages.map((m) => `${m.role}: "${m.content}"`)
+    allMessages.map((m) => `${m.role}: "${m.content.slice(0, 30)}..."`)
   );
 
   // call the llm
