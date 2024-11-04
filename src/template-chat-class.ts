@@ -19,18 +19,24 @@ export class TemplateChat {
   private singleLineParsers: BlockParser[];
   private logger?: TemplateChatLogger;
   private llmWrapper: LlmWrapper;
+  private defaultTemplate?: string;
+  private loopLimit: number;
 
   constructor(options: {
     placeholderParsers?: PlaceholderParser[];
     singleLineParsers: BlockParser[];
     llmWrapper: LlmWrapper;
     logger?: TemplateChatLogger;
+    defaultTemplate?: string;
+    loopLimit?: number;
   }) {
     this.blockParsers = [...standardBlockParsers];
     this.placeholderParsers = options?.placeholderParsers ?? [];
     this.singleLineParsers = options?.singleLineParsers ?? [];
     this.logger = options?.logger;
     this.llmWrapper = options.llmWrapper;
+    this.defaultTemplate = options.defaultTemplate;
+    this.loopLimit = options.loopLimit ?? 100;
   }
 
   /**
@@ -72,7 +78,9 @@ export class TemplateChat {
       data,
       this.llmWrapper,
       this.logger,
-      this.placeholderParsers
+      this.placeholderParsers,
+      this.defaultTemplate,
+      this.loopLimit
     );
   }
 }

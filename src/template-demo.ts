@@ -22,14 +22,19 @@ export const demoTemplate = `
   execute_on_start=generate_question
 }}  
   {{#role=assistant}}
+    The last question check was: {{llm_checks}}
     The actual question is: {{actual_question}}
   {{/role}}
   {{#role=user}}
-    What is the actual question? Reply with the question only.
+    Give me a short answer if the last question check was not correct.
+    And then give me the next question. In the following format:
+    
+    Your answer was <correct|incorrect>.
+    The next question is: <question>
   {{/role}}
 {{/block}}
 
-{{#callback role=assistant content=actual_question return=users_input}}
+{{#callback role=assistant content=actual_question answer_variables=user_input variables=llm_check possible_triggers=next,skip}}
 
 {{#block
   name=question_loop
@@ -57,7 +62,7 @@ export const demoTemplate = `
     {{/role}}
 
     {{#role=user}}
-        {{users_input}}
+        {{user_input}}
     {{/role}}
 {{/block}}
 

@@ -55,14 +55,20 @@ const parseExecuteFunctions = (value: any): string[] | undefined => {
 const parseCallback = (block: BlockWithMessages): ParsedBlock["callback"] => {
   const args = block.arguments || {};
 
-  if (!args.role || !args.return) {
+  if (!args.role || !args.answer_variables) {
     throw new Error("Callback must have role and return arguments");
   }
 
   return {
     role: String(args.role),
     contentVariable: args.content ? String(args.content) : undefined,
-    returnVariables: String(args.return)
+    returnVariables: String(args.answer_variables)
+      .split(",")
+      .map((v) => v.trim()),
+    possibleTriggers: String(args.possible_triggers)
+      .split(",")
+      .map((v) => v.trim()),
+    transmitVariables: String(args.variables)
       .split(",")
       .map((v) => v.trim()),
   };

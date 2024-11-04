@@ -125,7 +125,9 @@ export type ParsedBlock = {
   callback?: {
     role: string;
     contentVariable?: string;
+    transmitVariables: string[];
     returnVariables: string[];
+    possibleTriggers: string[];
   };
   /**
    * Is the block a setter?
@@ -236,6 +238,8 @@ export type UserChatResponse = {
   };
   meta: any;
   finished?: boolean;
+  variables?: VariableDictionaryInMemory;
+  possibleTriggers?: string[];
 };
 
 export type TemplateChatLogger = {

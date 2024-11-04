@@ -28,7 +28,7 @@
   {{/role}}
 {{/block}}
 
-{{#callback role=assistant content=actual_question return=users_input}}
+{{#callback role=assistant content=actual_question return=user_input}}
 
 {{#block
   name=question_loop
@@ -56,7 +56,7 @@
     {{/role}}
 
     {{#role=user}}
-        {{users_input}}
+        {{user_input}}
     {{/role}}
 {{/block}}
 

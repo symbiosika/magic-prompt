@@ -54,6 +54,8 @@ const templateChat = new TemplateChat({
   placeholderParsers: demoPlaceholderParsers,
   llmWrapper: getResponseFromOpenAi,
   logger: appendToLog,
+  defaultTemplate: assistantTemplate,
+  loopLimit: 10,
 });
 
 const rl = readline.createInterface({
@@ -70,12 +72,12 @@ async function startChat() {
     const id = nanoid(8);
     await log(`Init Chat ID: ${id}`);
 
-    // const template = await parseTemplate(demoTemplate);
-    const template = await parseTemplate(assistantTemplate);
+    const template1 = await parseTemplate(demoTemplate);
+    const template2 = await parseTemplate(assistantTemplate);
 
     // Start initial chat
     let chatResponse = await templateChat.chat({
-      template: undefined, // template
+      template: template1, //: undefined, // template
       chatId: id,
     });
 

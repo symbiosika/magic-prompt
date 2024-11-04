@@ -21,7 +21,7 @@ export const standardBlockParsers: BlockParser[] = [
 export const standardSingleLineParsers: BlockParser[] = [
   {
     name: "callback",
-    requiredArguments: ["role", "return"],
+    requiredArguments: [],
   },
   {
     name: "set",

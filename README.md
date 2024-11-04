@@ -52,7 +52,7 @@ npm install magic-prompt
     {{/role}}
 
     {{#role=user}}
-        {{users_input}}
+        {{user_input}}
     {{/role}}
 {{/block}}
 ```
@@ -152,9 +152,11 @@ Callback blocks are special blocks for handling user input:
 
 ```
 {{#callback
-  role="user"               # Required: Role for the callback (usually "user")
-  content="var_name"        # Optional: Variable to store user input content
-  return="var1,var2"        # Required: Comma-separated variables to return
+  role="assistant"              # Required: Role for the callback (usually "assistant")
+  content=var_name              # Optional: Variable that will be the message content
+  variables=var1,var2           # Optional: Variables that will be given back to the user from the store
+  answer_variables=var1,var2    # Optional: Comma-separated variables that the user can return to his next prompt
+  possible_triggers=next,skip   # Optional: Comma-separated list of possible triggers that the user can use
 }}
 ```
 

@@ -9,6 +9,7 @@ import {
   UserChatResponse,
   UserTrigger,
   VariableDictionary,
+  VariableDictionaryInMemory,
 } from "./types";
 import {
   replaceCustomPlaceholders,
@@ -111,7 +112,8 @@ export const blockLoop = async (
   trigger: UserTrigger | undefined,
   usersVariables: VariableDictionary | undefined,
   logger: TemplateChatLogger | undefined,
-  placeholderParsers: PlaceholderParser[]
+  placeholderParsers: PlaceholderParser[],
+  loopLimit: number
 ) => {
   const chatId = session.id;
   const template = session.state.useTemplate.def;
@@ -119,7 +121,7 @@ export const blockLoop = async (
   // merge the sessions variables with the users variables
   chatStore.mergeVariables(chatId, usersVariables ?? {});
   if (userMessage) {
-    chatStore.setVariable(chatId, "users_input", userMessage);
+    chatStore.setVariable(chatId, "user_input", userMessage);
   }
 
   // check if we are in progress inside a template
@@ -135,10 +137,15 @@ export const blockLoop = async (
   );
 
   // iterate over blocks
+  let cnt = 0;
   for (let x = inProgressTemplate; x < template.blocks.length; null) {
     // set state
     chatStore.set(chatId, { blockIndex: x });
     await logger?.debug?.("magic-prompt: Set state to", x);
+    cnt++;
+    if (cnt > loopLimit) {
+      throw new Error("Loop limit reached");
+    }
 
     // get the block
     const block = template.blocks[x];
@@ -173,7 +180,21 @@ export const blockLoop = async (
             : "",
         },
         meta: {
-          variables: block.callback.returnVariables,
+          variablesToReturn: block.callback.returnVariables?.reduce(
+            (acc, varName) => ({ ...acc, [varName]: true }),
+            {} as Record<string, boolean>
+          ),
+          variables: block.callback.transmitVariables?.reduce(
+            (acc, varName) => {
+              acc[varName] = chatStore.getVariable(chatId, varName);
+              return acc;
+            },
+            {} as VariableDictionaryInMemory
+          ),
+          possibleTriggers: block.callback.possibleTriggers.reduce(
+            (acc, trigger) => ({ ...acc, [trigger]: true }),
+            {} as Record<string, boolean>
+          ),
         },
         finished: false,
       };
@@ -269,7 +290,7 @@ export const blockLoop = async (
           content: response,
         },
         meta: {
-          variables: ["users_input"],
+          variables: ["user_input"],
         },
         finished: false,
       };
@@ -316,7 +337,9 @@ export async function initChatFromUi(
   data: UserChatQuery,
   llmWrapper: LlmWrapper,
   logger: TemplateChatLogger | undefined,
-  placeholderParsers: PlaceholderParser[]
+  placeholderParsers: PlaceholderParser[],
+  defaultTemplate: string | undefined,
+  loopLimit: number
 ): Promise<{
   chatId: string;
   result: UserChatResponse;
@@ -339,9 +362,12 @@ export async function initChatFromUi(
     await logger?.debug?.(
       "magic-prompt: No session found. Create new session without template"
     );
-    const jsonTemplate = await parseTemplateRaw(assistantTemplate, {
-      placeholderParsers,
-    });
+    const jsonTemplate = await parseTemplateRaw(
+      defaultTemplate ?? assistantTemplate,
+      {
+        placeholderParsers,
+      }
+    );
     const blocks = parseTemplateToBlocks(jsonTemplate);
     session = chatStore.create({
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
@@ -357,7 +383,8 @@ export async function initChatFromUi(
     data.trigger,
     data.usersVariables,
     logger,
-    placeholderParsers
+    placeholderParsers,
+    loopLimit
   );
 
   return { chatId: session.id, result };

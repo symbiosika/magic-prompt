@@ -11,9 +11,7 @@
     },
     {
       "name": "next_question",
-      "executeOnStart": [
-        "generate_question"
-      ],
+      "executeOnStart": ["generate_question"],
       "clearOnStart": true,
       "clearOnEnd": false,
       "messages": [
@@ -41,9 +39,7 @@
       "callback": {
         "role": "assistant",
         "contentVariable": "actual_question",
-        "returnVariables": [
-          "users_input"
-        ]
+        "returnVariables": ["user_input"]
       }
     },
     {
@@ -75,9 +71,9 @@
         },
         {
           "role": "user",
-          "content": "{{users_input}}",
+          "content": "{{user_input}}",
           "variables": {
-            "users_input": true
+            "user_input": true
           },
           "placeholders": [],
           "setters": []
