@@ -86,7 +86,7 @@ describe("replaceCustomPlaceholders", () => {
     ];
 
     // Act
-    const result = await replaceCustomPlaceholders(messages, parsers);
+    const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
     expect(result).toHaveLength(1);
@@ -116,7 +116,7 @@ describe("replaceCustomPlaceholders", () => {
     ];
 
     // Act
-    const result = await replaceCustomPlaceholders(messages, parsers);
+    const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
     expect(result[0].content).toBe("val1 and val2");
@@ -145,7 +145,7 @@ describe("replaceCustomPlaceholders", () => {
     ];
 
     // Act
-    const result = await replaceCustomPlaceholders(messages, parsers);
+    const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
     expect(result[0].content).toBe("Hello {{#unknown test=val1}} world");
@@ -174,7 +174,7 @@ describe("replaceCustomPlaceholders", () => {
     ];
 
     // Act
-    const result = await replaceCustomPlaceholders(messages, parsers);
+    const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
     expect(result[0].content).toBe("Hello world");

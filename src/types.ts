@@ -83,7 +83,8 @@ export type PlaceholderParser = {
   }[];
   replacerFunction: (
     match: string,
-    args: PlaceholderArgumentDict
+    args: PlaceholderArgumentDict,
+    variables: VariableDictionaryInMemory
   ) => Promise<string>;
 };
 

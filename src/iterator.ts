@@ -39,6 +39,7 @@ const getResponseFromLlm = async (
   replacedBlockMessages = await replaceCustomPlaceholders(
     replacedBlockMessages,
     placeholderParsers,
+    session.state.variables,
     logger
   );
 

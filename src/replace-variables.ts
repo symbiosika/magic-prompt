@@ -52,6 +52,7 @@ export const replaceVariables = async (
 export const replaceCustomPlaceholders = async (
   messages: ChatMessage[],
   parsers: PlaceholderParser[],
+  variables: VariableDictionaryInMemory,
   logger?: TemplateChatLogger
 ) => {
   const replacedMessages: ChatMessage[] = [];
@@ -74,7 +75,11 @@ export const replaceCustomPlaceholders = async (
         // Process all matches sequentially
         for (const match of matches) {
           const args = parseArgumentsWithoutLimits(match, parser.name);
-          const replacement = await parser.replacerFunction(match, args);
+          const replacement = await parser.replacerFunction(
+            match,
+            args,
+            variables
+          );
           // await logger?.debug?.(
           //   `magic-prompt:  Replacing "${match}" with "${replacement}"`
           // );

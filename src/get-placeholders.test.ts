@@ -4,7 +4,11 @@ import {
   findVariablePlaceholders,
   parseSpecialPlaceholders,
 } from "./get-placeholders";
-import { PlaceholderParser, PlaceholderArgumentDict } from "./types";
+import {
+  PlaceholderParser,
+  PlaceholderArgumentDict,
+  VariableDictionaryInMemory,
+} from "./types";
 
 export const standardPlaceholderParsers: PlaceholderParser[] = [
   {
@@ -20,7 +24,11 @@ export const standardPlaceholderParsers: PlaceholderParser[] = [
         required: false,
       },
     ],
-    replacerFunction: async (match: string, args: PlaceholderArgumentDict) => {
+    replacerFunction: async (
+      match: string,
+      args: PlaceholderArgumentDict,
+      variables: VariableDictionaryInMemory
+    ) => {
       // to do
       return match;
     },

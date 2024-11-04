@@ -7,6 +7,7 @@ import {
   PlaceholderArgumentDict,
   PlaceholderParser,
   TemplateChatLogger,
+  VariableDictionaryInMemory,
 } from "./types";
 import { getResponseFromOpenAi } from "./demo-llm-warpper";
 import { parseTemplate } from "./generate-logic";
@@ -19,7 +20,8 @@ export const demoPlaceholderParsers: PlaceholderParser[] = [
     name: "demo",
     replacerFunction: async (
       match: string,
-      args: PlaceholderArgumentDict
+      args: PlaceholderArgumentDict,
+      variables: VariableDictionaryInMemory
     ): Promise<string> => {
       return "THIS IS A DEMO";
     },
