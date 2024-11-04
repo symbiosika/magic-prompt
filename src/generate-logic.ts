@@ -58,15 +58,21 @@ const parseCallback = (block: BlockWithMessages): ParsedBlock["callback"] => {
   return {
     role: args.role ? String(args.role) : "assistant",
     contentVariable: args.content ? String(args.content) : undefined,
-    returnVariables: String(args.answer_variables)
-      .split(",")
-      .map((v) => v.trim()),
-    possibleTriggers: String(args.possible_triggers)
-      .split(",")
-      .map((v) => v.trim()),
-    transmitVariables: String(args.variables)
-      .split(",")
-      .map((v) => v.trim()),
+    returnVariables: args.answer_variables
+      ? String(args.answer_variables)
+          .split(",")
+          .map((v) => v.trim())
+      : [],
+    possibleTriggers: args.possible_triggers
+      ? String(args.possible_triggers)
+          .split(",")
+          .map((v) => v.trim())
+      : [],
+    transmitVariables: args.variables
+      ? String(args.variables)
+          .split(",")
+          .map((v) => v.trim())
+      : [],
   };
 };
 
