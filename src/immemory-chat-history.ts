@@ -17,10 +17,10 @@ export class ChatHistoryStore {
     setInterval(() => this.cleanup(), 1000 * 60 * 60);
   }
 
-  create(options?: {
+  async create(options?: {
     chatId?: string;
     useTemplate?: ParsedTemplateBlocks;
-  }): ChatSession {
+  }): Promise<ChatSession> {
     const chatId = options?.chatId ?? nanoid(16);
     const session = {
       id: chatId,
@@ -39,7 +39,7 @@ export class ChatHistoryStore {
     return session;
   }
 
-  get(chatId: string): ChatSession | null {
+  async get(chatId: string): Promise<ChatSession | null> {
     const session = this.sessions.get(chatId);
     if (session) {
       session.lastUsedAt = new Date();
@@ -49,7 +49,7 @@ export class ChatHistoryStore {
     }
   }
 
-  set(
+  async set(
     chatId: string,
     set: {
       actualChat?: ChatMessage[];
@@ -57,7 +57,7 @@ export class ChatHistoryStore {
       template?: ParsedTemplateBlocks;
       blockIndex?: number;
     }
-  ): void {
+  ): Promise<void> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     if (set.actualChat) session.actualChat = set.actualChat;
@@ -76,25 +76,39 @@ export class ChatHistoryStore {
     session.lastUsedAt = new Date();
   }
 
-  setVariable(chatId: string, key: string, value: VariableType): void {
+  async setVariable(
+    chatId: string,
+    key: string,
+    value: VariableType
+  ): Promise<void> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     session.state.variables[key] = value;
   }
 
-  mergeVariables(chatId: string, variables: VariableDictionary): void {
+  async mergeVariables(
+    chatId: string,
+    variables: VariableDictionary
+  ): Promise<void> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     session.state.variables = { ...session.state.variables, ...variables };
   }
 
-  getVariable(chatId: string, key: string): VariableTypeInMemory {
+  async getVariable(
+    chatId: string,
+    key: string
+  ): Promise<VariableTypeInMemory> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     return session.state.variables[key];
   }
 
-  appendToMemory(chatId: string, memoryKey: string, value: VariableType): void {
+  async appendToMemory(
+    chatId: string,
+    memoryKey: string,
+    value: VariableType
+  ): Promise<void> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     if (
@@ -105,7 +119,7 @@ export class ChatHistoryStore {
     (session.state.variables[memoryKey] as VariableType[]).push(value);
   }
 
-  cleanup(): void {
+  async cleanup(): Promise<void> {
     const now = new Date();
     for (const [chatId, session] of this.sessions.entries()) {
       const hoursSinceLastUse =

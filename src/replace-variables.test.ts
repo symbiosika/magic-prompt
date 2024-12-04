@@ -91,8 +91,8 @@ describe("replaceCustomPlaceholders", () => {
     const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
-    expect(result).toHaveLength(1);
-    expect(result[0].content).toBe("Hello val1-val2 world");
+    expect(result.replacedMessages).toHaveLength(1);
+    expect(result.replacedMessages[0].content).toBe("Hello val1-val2 world");
   });
 
   it("should handle multiple custom placeholders in one message", async () => {
@@ -123,7 +123,7 @@ describe("replaceCustomPlaceholders", () => {
     const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
-    expect(result[0].content).toBe("val1 and val2");
+    expect(result.replacedMessages[0].content).toBe("val1 and val2");
   });
 
   it("should not modify message when no matching parser is found", async () => {
@@ -154,7 +154,9 @@ describe("replaceCustomPlaceholders", () => {
     const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
-    expect(result[0].content).toBe("Hello {{#unknown test=val1}} world");
+    expect(result.replacedMessages[0].content).toBe(
+      "Hello {{#unknown test=val1}} world"
+    );
   });
 
   it("should handle messages without placeholders", async () => {
@@ -185,6 +187,6 @@ describe("replaceCustomPlaceholders", () => {
     const result = await replaceCustomPlaceholders(messages, parsers, {});
 
     // Assert
-    expect(result[0].content).toBe("Hello world");
+    expect(result.replacedMessages[0].content).toBe("Hello world");
   });
 });

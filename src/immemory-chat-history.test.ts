@@ -6,8 +6,8 @@ const store = new ChatHistoryStore(48);
 
 describe("ChatHistoryStore", () => {
   describe("create", () => {
-    it("should create a new chat session without template", () => {
-      const session = store.create();
+    it("should create a new chat session without template", async () => {
+      const session = await store.create();
 
       expect(session.id).toBeDefined();
       expect(session.id.length).toBe(16);
@@ -17,13 +17,13 @@ describe("ChatHistoryStore", () => {
       expect(session.state.variables).toEqual({});
     });
 
-    it("should create a new chat session with template", () => {
+    it("should create a new chat session with template", async () => {
       const template: ParsedTemplateBlocks = {
         errors: [],
         blocks: [],
         functions: {},
       };
-      const session = store.create({ useTemplate: template });
+      const session = await store.create({ useTemplate: template });
 
       expect(session.state.useTemplate).toBeDefined();
       expect(session.state.useTemplate!.def).toEqual(template);
@@ -32,18 +32,18 @@ describe("ChatHistoryStore", () => {
   });
 
   describe("get", () => {
-    it("should return null for non-existent session", () => {
-      expect(store.get("nonexistent")).toBeNull();
+    it("should return null for non-existent session", async () => {
+      expect(await store.get("nonexistent")).toBeNull();
     });
 
-    it("should return existing session and update lastUsedAt", () => {
-      const session = store.create();
+    it("should return existing session and update lastUsedAt", async () => {
+      const session = await store.create();
       const originalDate = session.lastUsedAt;
 
       // Wait a bit to ensure new Date() gives different time
-      setTimeout(() => {
+      setTimeout(async () => {
         // console.log(session.id);
-        const retrieved = store.get(session.id);
+        const retrieved = await store.get(session.id);
         if (!retrieved) {
           throw new Error("Session not found");
         }
@@ -56,16 +56,16 @@ describe("ChatHistoryStore", () => {
   });
 
   describe("set", () => {
-    it("should update session properties", () => {
-      const session = store.create();
+    it("should update session properties", async () => {
+      const session = await store.create();
       const newMessage: ChatMessage = { role: "user", content: "Hello" };
 
-      store.set(session.id, {
+      await store.set(session.id, {
         actualChat: [newMessage],
         appendToHistory: [newMessage],
       });
 
-      const updated = store.get(session.id)!;
+      const updated = (await store.get(session.id))!;
       expect(updated.actualChat).toEqual([newMessage]);
       expect(updated.fullHistory).toEqual([newMessage]);
     });
@@ -76,11 +76,11 @@ describe("ChatHistoryStore", () => {
   });
 
   describe("variables", () => {
-    it("should set and get variables", () => {
-      const session = store.create();
-      store.setVariable(session.id, "testKey", "testValue");
+    it("should set and get variables", async () => {
+      const session = await store.create();
+      await store.setVariable(session.id, "testKey", "testValue");
 
-      expect(store.getVariable(session.id, "testKey")).toBe("testValue");
+      expect(await store.getVariable(session.id, "testKey")).toBe("testValue");
     });
 
     it("should throw error when getting non-existent session", () => {
@@ -91,12 +91,12 @@ describe("ChatHistoryStore", () => {
   });
 
   describe("memory", () => {
-    it("should append to memory", () => {
-      const session = store.create();
-      store.appendToMemory(session.id, "testMemory", "value1");
-      store.appendToMemory(session.id, "testMemory", "value2");
+    it("should append to memory", async () => {
+      const session = await store.create();
+      await store.appendToMemory(session.id, "testMemory", "value1");
+      await store.appendToMemory(session.id, "testMemory", "value2");
 
-      const updated = store.get(session.id)!;
+      const updated = (await store.get(session.id))!;
       expect(updated.state.variables["testMemory"]).toEqual([
         "value1",
         "value2",
@@ -105,7 +105,7 @@ describe("ChatHistoryStore", () => {
   });
 
   describe("cleanup", () => {
-    it("should remove expired sessions", () => {
+    it("should remove expired sessions", async () => {
       // Mock Date.now() to control time
       const realDate = Date;
       const currentTime = new Date("2024-01-01").getTime();
@@ -118,7 +118,7 @@ describe("ChatHistoryStore", () => {
       } as DateConstructor;
 
       const store = new ChatHistoryStore(1); // 1 hour max age
-      const session = store.create();
+      const session = await store.create();
 
       // Advance time by 2 hours
       global.Date = class extends Date {
@@ -128,8 +128,8 @@ describe("ChatHistoryStore", () => {
         }
       } as DateConstructor;
 
-      store.cleanup();
-      expect(store.get(session.id)).toBeNull();
+      await store.cleanup(); // Ensure cleanup is awaited
+      expect(await store.get(session.id)).toBeNull(); // Await the get call
 
       // Restore original Date
       global.Date = realDate;

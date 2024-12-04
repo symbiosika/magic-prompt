@@ -76,8 +76,8 @@ const getResponseFromLlm = async (
   allMessages.push({ role: "assistant", content: response });
 
   // save all messages to actualChat
-  chatStore.set(session.id, { appendToHistory: replacedBlockMessages });
-  chatStore.set(session.id, { actualChat: allMessages });
+  await chatStore.set(session.id, { appendToHistory: replacedBlockMessages });
+  await chatStore.set(session.id, { actualChat: allMessages });
 
   await logger?.debug?.("magic-prompt: LLM response", response);
   return {
@@ -115,9 +115,9 @@ const executeFunction = async (
       response,
       `Set variable ${func.outputVariable} with value`
     );
-    chatStore.setVariable(session.id, func.outputVariable, response);
+    await chatStore.setVariable(session.id, func.outputVariable, response);
     if (func.memoryVariable) {
-      chatStore.appendToMemory(session.id, func.memoryVariable, response);
+      await chatStore.appendToMemory(session.id, func.memoryVariable, response);
       await logger?.debug?.(
         `magic-prompt:  Actual memory state for ${func.memoryVariable}`,
         session.state.variables[func.memoryVariable]
@@ -148,9 +148,9 @@ export const blockLoop = async (
   const template = session.state.useTemplate.def;
 
   // merge the sessions variables with the users variables
-  chatStore.mergeVariables(chatId, usersVariables ?? {});
+  await chatStore.mergeVariables(chatId, usersVariables ?? {});
   if (userMessage) {
-    chatStore.setVariable(chatId, "user_input", userMessage);
+    await chatStore.setVariable(chatId, "user_input", userMessage);
   }
 
   // check if we are in progress inside a template
@@ -169,7 +169,7 @@ export const blockLoop = async (
   let cnt = 0;
   for (let x = inProgressTemplate; x < template.blocks.length; null) {
     // set state
-    chatStore.set(chatId, { blockIndex: x });
+    await chatStore.set(chatId, { blockIndex: x });
     await logger?.debug?.(`magic-prompt: Set blockIndex to ${x}`);
     cnt++;
     if (cnt > loopLimit) {
@@ -188,7 +188,7 @@ export const blockLoop = async (
         "magic-prompt: Set variables",
         block.setter.variables
       );
-      chatStore.mergeVariables(chatId, block.setter.variables);
+      await chatStore.mergeVariables(chatId, block.setter.variables);
       x++;
       continue;
     }
@@ -199,29 +199,38 @@ export const blockLoop = async (
     if (block.callback) {
       await logger?.debug?.("magic-prompt: triggered a callback");
       // set the pointer to the next block!
-      chatStore.set(chatId, { blockIndex: x + 1 });
+      await chatStore.set(chatId, { blockIndex: x + 1 });
+
+      const variablesToReturn: VariableDictionaryInMemory = {};
+      if (block.callback.returnVariables) {
+        for (const varName of block.callback.returnVariables) {
+          variablesToReturn[varName] = true;
+        }
+      }
+
+      const variables: VariableDictionaryInMemory = {};
+      if (block.callback.transmitVariables) {
+        for (const varName of block.callback.transmitVariables) {
+          variables[varName] = await chatStore.getVariable(chatId, varName);
+        }
+      }
+
       return <UserChatResponse>{
         chatId,
         message: {
           role: "assistant",
           content: block.callback.contentVariable
             ? ensureString(
-                chatStore.getVariable(chatId, block.callback.contentVariable)
+                await chatStore.getVariable(
+                  chatId,
+                  block.callback.contentVariable
+                )
               )
             : "",
         },
         meta: {
-          variablesToReturn: block.callback.returnVariables?.reduce(
-            (acc, varName) => ({ ...acc, [varName]: true }),
-            {} as Record<string, boolean>
-          ),
-          variables: block.callback.transmitVariables?.reduce(
-            (acc, varName) => {
-              acc[varName] = chatStore.getVariable(chatId, varName);
-              return acc;
-            },
-            {} as VariableDictionaryInMemory
-          ),
+          variablesToReturn,
+          variables,
           possibleTriggers: block.callback.possibleTriggers.reduce(
             (acc, trigger) => ({ ...acc, [trigger]: true }),
             {} as Record<string, boolean>
@@ -236,7 +245,7 @@ export const blockLoop = async (
      */
     // clear actual chat if wanted
     if (block.clearOnStart) {
-      chatStore.set(chatId, { actualChat: [] });
+      await chatStore.set(chatId, { actualChat: [] });
     }
 
     // execute functions on start
@@ -273,10 +282,10 @@ export const blockLoop = async (
     }
     // set output variables in state
     if (block.outputVariable) {
-      chatStore.setVariable(chatId, block.outputVariable, response);
+      await chatStore.setVariable(chatId, block.outputVariable, response);
     }
     if (block.memoryVariable) {
-      chatStore.appendToMemory(chatId, block.memoryVariable, response);
+      await chatStore.appendToMemory(chatId, block.memoryVariable, response);
     }
     lastResponse = response;
 
@@ -302,7 +311,7 @@ export const blockLoop = async (
 
     // clear the history if wanted
     if (block.clearOnEnd) {
-      chatStore.set(chatId, { actualChat: [] });
+      await chatStore.set(chatId, { actualChat: [] });
     }
 
     // What to do next?
@@ -381,13 +390,13 @@ export async function initChatFromUi(
   result: UserChatResponse;
 }> {
   await logger?.debug?.("magic-prompt: Starting chat initialization", data);
-  let session = data.chatId ? chatStore.get(data.chatId) : null;
+  let session = data.chatId ? await chatStore.get(data.chatId) : null;
 
   if (!session && data.template) {
     await logger?.debug?.(
       `magic-prompt: No session found. Create new session with id ${data.chatId}`
     );
-    session = chatStore.create({
+    session = await chatStore.create({
       useTemplate: data.template,
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
     });
@@ -405,7 +414,7 @@ export async function initChatFromUi(
       }
     );
     const blocks = parseTemplateToBlocks(jsonTemplate);
-    session = chatStore.create({
+    session = await chatStore.create({
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
       useTemplate: blocks,
     });
