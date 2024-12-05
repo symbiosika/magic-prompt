@@ -21,10 +21,12 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
   async create(options?: {
     chatId?: string;
     useTemplate?: ParsedTemplateBlocks;
+    userId?: string;
   }): Promise<ChatSession> {
     const chatId = options?.chatId ?? nanoid(16);
     const session = {
       id: chatId,
+      userId: options?.userId,
       actualChat: [],
       fullHistory: [],
       state: {

@@ -228,6 +228,7 @@ export type UserTrigger = {
  */
 export type UserChatQuery = {
   chatId?: string;
+  userId?: string;
   userMessage?: string;
   template?: ParsedTemplateBlocks;
   trigger?: UserTrigger;
@@ -264,6 +265,7 @@ export type ChatMessage = {
 
 export interface BaseChatSession {
   id: string;
+  userId?: string;
   fullHistory: ChatMessage[];
   actualChat: ChatMessage[];
   createdAt: Date;

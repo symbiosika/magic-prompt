@@ -406,6 +406,7 @@ export async function initChatFromUi(
     );
     session = await chatStore.create({
       useTemplate: data.template,
+      userId: data.userId,
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
     });
     await logger?.debug?.(
@@ -425,6 +426,7 @@ export async function initChatFromUi(
     session = await chatStore.create({
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
       useTemplate: blocks,
+      userId: data.userId,
     });
   }
 
