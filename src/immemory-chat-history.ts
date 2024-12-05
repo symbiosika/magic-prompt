@@ -7,9 +7,10 @@ import {
   VariableDictionary,
   VariableType,
   VariableTypeInMemory,
+  ChatHistoryStore,
 } from "./types";
 
-export class ChatHistoryStore {
+export class ChatHistoryStoreInMemory implements ChatHistoryStore {
   private sessions: Map<string, ChatSession> = new Map();
 
   constructor(private maxAgeHours: number = 48) {
@@ -129,6 +130,32 @@ export class ChatHistoryStore {
       }
     }
   }
+
+  async getHistoryByUserId(
+    userId: string,
+    startFrom?: string
+  ): Promise<
+    {
+      chatId: string;
+      history: ChatMessage[];
+    }[]
+  > {
+    const chats = Array.from(this.sessions.values()).filter(
+      (session) =>
+        session.id === userId &&
+        (startFrom ? session.lastUsedAt > new Date(startFrom) : true)
+    );
+    return chats.map((chat) => ({
+      chatId: chat.id,
+      history: chat.fullHistory,
+    }));
+  }
+
+  async getChatHistory(chatId: string): Promise<ChatMessage[]> {
+    const session = this.sessions.get(chatId);
+    if (!session) throw new Error("Session not found");
+    return session.fullHistory;
+  }
 }
 
-export const chatStore = new ChatHistoryStore(48);
+export const chatStore = new ChatHistoryStoreInMemory(48);

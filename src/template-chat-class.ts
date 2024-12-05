@@ -10,8 +10,10 @@ import {
   UserChatResponse,
   TemplateChatLogger,
   LlmWrapper,
+  ChatHistoryStore,
 } from "./types";
 import { standardBlockParsers } from "./standard-parsers";
+import { ChatHistoryStoreInMemory } from "./immemory-chat-history";
 
 export class TemplateChat {
   private blockParsers: BlockParser[];
@@ -21,6 +23,7 @@ export class TemplateChat {
   private llmWrapper: LlmWrapper;
   private defaultTemplate?: string;
   private loopLimit: number;
+  private chatStore: ChatHistoryStore;
 
   constructor(options: {
     placeholderParsers?: PlaceholderParser[];
@@ -29,6 +32,7 @@ export class TemplateChat {
     logger?: TemplateChatLogger;
     defaultTemplate?: string;
     loopLimit?: number;
+    chatStore?: ChatHistoryStore;
   }) {
     this.blockParsers = [...standardBlockParsers];
     this.placeholderParsers = options?.placeholderParsers ?? [];
@@ -37,6 +41,7 @@ export class TemplateChat {
     this.llmWrapper = options.llmWrapper;
     this.defaultTemplate = options.defaultTemplate;
     this.loopLimit = options.loopLimit ?? 100;
+    this.chatStore = options.chatStore ?? new ChatHistoryStoreInMemory(48);
   }
 
   /**
@@ -80,7 +85,8 @@ export class TemplateChat {
       this.logger,
       this.placeholderParsers,
       this.defaultTemplate,
-      this.loopLimit
+      this.loopLimit,
+      this.chatStore
     );
   }
 }

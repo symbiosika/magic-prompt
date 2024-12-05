@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { ChatHistoryStore } from "./immemory-chat-history";
+import { ChatHistoryStoreInMemory } from "./immemory-chat-history";
 import { ChatMessage, ParsedTemplateBlocks } from "./types";
 
-const store = new ChatHistoryStore(48);
+const store = new ChatHistoryStoreInMemory(48);
 
 describe("ChatHistoryStore", () => {
   describe("create", () => {
@@ -117,7 +117,7 @@ describe("ChatHistoryStore", () => {
         }
       } as DateConstructor;
 
-      const store = new ChatHistoryStore(1); // 1 hour max age
+      const store = new ChatHistoryStoreInMemory(1); // 1 hour max age
       const session = await store.create();
 
       // Advance time by 2 hours

@@ -1,5 +1,5 @@
-import { chatStore } from "./immemory-chat-history";
 import {
+  ChatHistoryStore,
   ChatSessionWithTemplate,
   LlmWrapper,
   ParsedBlock,
@@ -38,7 +38,8 @@ const getResponseFromLlm = async (
   block: ParsedBlock,
   llmWrapper: LlmWrapper,
   logger: TemplateChatLogger | undefined,
-  placeholderParsers: PlaceholderParser[]
+  placeholderParsers: PlaceholderParser[],
+  chatStore: ChatHistoryStore
 ): Promise<{
   content: string;
   skipThisBlock?: boolean;
@@ -93,7 +94,8 @@ const executeFunction = async (
   functionName: string,
   llmWrapper: LlmWrapper,
   logger: TemplateChatLogger | undefined,
-  placeholderParsers: PlaceholderParser[]
+  placeholderParsers: PlaceholderParser[],
+  chatStore: ChatHistoryStore
 ) => {
   const func = session.state.useTemplate.def.functions[functionName];
   if (func) {
@@ -103,7 +105,8 @@ const executeFunction = async (
       func,
       llmWrapper,
       logger,
-      placeholderParsers
+      placeholderParsers,
+      chatStore
     );
 
     if (skipThisBlock) {
@@ -142,7 +145,8 @@ export const blockLoop = async (
   usersVariables: VariableDictionary | undefined,
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
-  loopLimit: number
+  loopLimit: number,
+  chatStore: ChatHistoryStore
 ) => {
   const chatId = session.id;
   const template = session.state.useTemplate.def;
@@ -260,7 +264,8 @@ export const blockLoop = async (
           funcName,
           llmWrapper,
           logger,
-          placeholderParsers
+          placeholderParsers,
+          chatStore
         );
       }
     }
@@ -273,7 +278,8 @@ export const blockLoop = async (
       block,
       llmWrapper,
       logger,
-      placeholderParsers
+      placeholderParsers,
+      chatStore
     );
     if (skipThisBlock) {
       x++;
@@ -304,7 +310,8 @@ export const blockLoop = async (
           funcName,
           llmWrapper,
           logger,
-          placeholderParsers
+          placeholderParsers,
+          chatStore
         );
       }
     }
@@ -384,7 +391,8 @@ export async function initChatFromUi(
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
   defaultTemplate: string | undefined,
-  loopLimit: number
+  loopLimit: number,
+  chatStore: ChatHistoryStore
 ): Promise<{
   chatId: string;
   result: UserChatResponse;
@@ -429,7 +437,8 @@ export async function initChatFromUi(
     data.usersVariables,
     logger,
     placeholderParsers,
-    loopLimit
+    loopLimit,
+    chatStore
   );
 
   return { chatId: session.id, result };

@@ -288,3 +288,48 @@ export interface ChatSessionWithoutTemplate extends BaseChatSession {
 }
 
 export type ChatSession = ChatSessionWithTemplate | ChatSessionWithoutTemplate;
+
+export interface ChatHistoryStore {
+  create(options?: {
+    chatId?: string;
+    useTemplate?: ParsedTemplateBlocks;
+  }): Promise<ChatSession>;
+
+  get(chatId: string): Promise<ChatSession | null>;
+
+  set(
+    chatId: string,
+    set: {
+      actualChat?: ChatMessage[];
+      appendToHistory?: ChatMessage[];
+      template?: ParsedTemplateBlocks;
+      blockIndex?: number;
+    }
+  ): Promise<void>;
+
+  setVariable(chatId: string, key: string, value: VariableType): Promise<void>;
+
+  mergeVariables(chatId: string, variables: VariableDictionary): Promise<void>;
+
+  getVariable(chatId: string, key: string): Promise<VariableTypeInMemory>;
+
+  appendToMemory(
+    chatId: string,
+    memoryKey: string,
+    value: VariableType
+  ): Promise<void>;
+
+  cleanup(): Promise<void>;
+
+  getHistoryByUserId(
+    userId: string,
+    startFrom: string
+  ): Promise<
+    {
+      chatId: string;
+      history: ChatMessage[];
+    }[]
+  >;
+
+  getChatHistory(chatId: string): Promise<ChatMessage[]>;
+}
