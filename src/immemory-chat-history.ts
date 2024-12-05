@@ -8,6 +8,7 @@ import {
   VariableType,
   VariableTypeInMemory,
   ChatHistoryStore,
+  VariableDictionaryInMemory,
 } from "./types";
 
 export class ChatHistoryStoreInMemory implements ChatHistoryStore {
@@ -60,7 +61,7 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
       template?: ParsedTemplateBlocks;
       blockIndex?: number;
     }
-  ): Promise<void> {
+  ): Promise<VariableDictionaryInMemory> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     if (set.actualChat) session.actualChat = set.actualChat;
@@ -77,25 +78,31 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
       (session as ChatSessionWithTemplate).state.useTemplate.blockIndex =
         set.blockIndex;
     session.lastUsedAt = new Date();
+
+    return session.state.variables;
   }
 
   async setVariable(
     chatId: string,
     key: string,
     value: VariableType
-  ): Promise<void> {
+  ): Promise<VariableDictionaryInMemory> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     session.state.variables[key] = value;
+
+    return session.state.variables;
   }
 
   async mergeVariables(
     chatId: string,
     variables: VariableDictionary
-  ): Promise<void> {
+  ): Promise<VariableDictionaryInMemory> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     session.state.variables = { ...session.state.variables, ...variables };
+
+    return session.state.variables;
   }
 
   async getVariable(
@@ -111,7 +118,7 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
     chatId: string,
     memoryKey: string,
     value: VariableType
-  ): Promise<void> {
+  ): Promise<VariableDictionaryInMemory> {
     const session = this.sessions.get(chatId);
     if (!session) throw new Error("Session not found");
     if (
@@ -120,6 +127,8 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
     )
       session.state.variables[memoryKey] = [] as VariableTypeInMemory;
     (session.state.variables[memoryKey] as VariableType[]).push(value);
+
+    return session.state.variables;
   }
 
   async cleanup(): Promise<void> {

@@ -308,11 +308,18 @@ export interface ChatHistoryStore {
       template?: ParsedTemplateBlocks;
       blockIndex?: number;
     }
-  ): Promise<void>;
+  ): Promise<VariableDictionaryInMemory>;
 
-  setVariable(chatId: string, key: string, value: VariableType): Promise<void>;
+  setVariable(
+    chatId: string,
+    key: string,
+    value: VariableType
+  ): Promise<VariableDictionaryInMemory>;
 
-  mergeVariables(chatId: string, variables: VariableDictionary): Promise<void>;
+  mergeVariables(
+    chatId: string,
+    variables: VariableDictionary
+  ): Promise<VariableDictionaryInMemory>;
 
   getVariable(chatId: string, key: string): Promise<VariableTypeInMemory>;
 
@@ -320,7 +327,7 @@ export interface ChatHistoryStore {
     chatId: string,
     memoryKey: string,
     value: VariableType
-  ): Promise<void>;
+  ): Promise<VariableDictionaryInMemory>;
 
   cleanup(): Promise<void>;
 

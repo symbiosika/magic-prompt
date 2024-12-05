@@ -114,7 +114,7 @@ const executeFunction = async (
     }
 
     await logger?.debug?.(
-      "magic-prompt:  LLM Function response",
+      "magic-prompt: LLM Function response",
       response,
       `Set variable ${func.outputVariable} with value`
     );
@@ -122,7 +122,7 @@ const executeFunction = async (
     if (func.memoryVariable) {
       await chatStore.appendToMemory(session.id, func.memoryVariable, response);
       await logger?.debug?.(
-        `magic-prompt:  Actual memory state for ${func.memoryVariable}`,
+        `magic-prompt: Actual memory state for ${func.memoryVariable}`,
         session.state.variables[func.memoryVariable]
       );
     }
@@ -152,9 +152,16 @@ export const blockLoop = async (
   const template = session.state.useTemplate.def;
 
   // merge the sessions variables with the users variables
-  await chatStore.mergeVariables(chatId, usersVariables ?? {});
+  session.state.variables = await chatStore.mergeVariables(
+    chatId,
+    usersVariables ?? {}
+  );
   if (userMessage) {
-    await chatStore.setVariable(chatId, "user_input", userMessage);
+    session.state.variables = await chatStore.setVariable(
+      chatId,
+      "user_input",
+      userMessage
+    );
   }
 
   // check if we are in progress inside a template
@@ -165,7 +172,7 @@ export const blockLoop = async (
 
   // log a list of all blocks. only log the name
   await logger?.debug?.(
-    "magic-prompt:  All blocks",
+    "magic-prompt: All blocks",
     template.blocks.map((b) => b.name)
   );
 
@@ -255,7 +262,7 @@ export const blockLoop = async (
     // execute functions on start
     if (block.executeOnStart) {
       await logger?.debug?.(
-        "magic-prompt:  Execute functions on start",
+        "magic-prompt: Execute functions on start",
         block.executeOnStart
       );
       for (const funcName of block.executeOnStart) {

@@ -29,14 +29,14 @@ export const replaceVariables = async (
             ? value.map((v) => `"${v}"`).join("\n\n")
             : value;
           await logger?.debug?.(
-            `magic-prompt:  Replacing "${match}" with "${returnValue}"`
+            `magic-prompt: Replacing "${match}" with "${returnValue}"`
           );
           replacedMessage.content = replacedMessage.content.replace(
             match,
             returnValue
           );
         } else {
-          await logger?.debug?.(`magic-prompt:  No replacement for "${match}"`);
+          await logger?.debug?.(`magic-prompt: No replacement for "${match}"`);
         }
       }
     }
