@@ -293,6 +293,7 @@ export interface ChatHistoryStore {
   create(options?: {
     chatId?: string;
     useTemplate?: ParsedTemplateBlocks;
+    userId?: string;
   }): Promise<ChatSession>;
 
   get(chatId: string): Promise<ChatSession | null>;
