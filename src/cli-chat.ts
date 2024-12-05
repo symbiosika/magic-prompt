@@ -82,10 +82,16 @@ async function startChat() {
     const template1 = await parseTemplate(demoTemplate);
     const template2 = await parseTemplate(assistantTemplate);
 
+    // get initial user input
+    const initialUserInput = await new Promise<string>((resolve) => {
+      rl.question("You: ", resolve);
+    });
+
     // Start initial chat
     let chatResponse = await templateChat.chat({
-      template: template1, //: undefined, // template
+      template: template2, //: undefined, // template
       chatId: id,
+      userMessage: initialUserInput,
     });
 
     let chatId = chatResponse.chatId;
