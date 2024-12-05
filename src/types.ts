@@ -301,6 +301,8 @@ export interface ChatHistoryStore {
 
   get(chatId: string): Promise<ChatSession | null>;
 
+  drop(chatId: string): Promise<void>;
+
   set(
     chatId: string,
     set: {

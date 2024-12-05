@@ -54,6 +54,10 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
     }
   }
 
+  async drop(chatId: string): Promise<void> {
+    this.sessions.delete(chatId);
+  }
+
   async set(
     chatId: string,
     set: {
