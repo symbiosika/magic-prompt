@@ -265,6 +265,7 @@ export type ChatMessage = {
 
 export interface BaseChatSession {
   id: string;
+  name: string;
   userId?: string;
   fullHistory: ChatMessage[];
   actualChat: ChatMessage[];
@@ -307,6 +308,7 @@ export interface ChatHistoryStore {
       appendToHistory?: ChatMessage[];
       template?: ParsedTemplateBlocks;
       blockIndex?: number;
+      name?: string;
     }
   ): Promise<VariableDictionaryInMemory>;
 

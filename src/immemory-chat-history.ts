@@ -27,6 +27,7 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
     const chatId = options?.chatId ?? nanoid(16);
     const session = {
       id: chatId,
+      name: `Chat ${chatId}`,
       userId: options?.userId,
       actualChat: [],
       fullHistory: [],
@@ -60,6 +61,7 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
       appendToHistory?: ChatMessage[];
       template?: ParsedTemplateBlocks;
       blockIndex?: number;
+      name?: string;
     }
   ): Promise<VariableDictionaryInMemory> {
     const session = this.sessions.get(chatId);
@@ -78,6 +80,8 @@ export class ChatHistoryStoreInMemory implements ChatHistoryStore {
       (session as ChatSessionWithTemplate).state.useTemplate.blockIndex =
         set.blockIndex;
     session.lastUsedAt = new Date();
+
+    if (set.name) session.name = set.name;
 
     return session.state.variables;
   }
