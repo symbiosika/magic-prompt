@@ -1,6 +1,7 @@
 import {
   ChatHistoryStore,
   ChatSessionWithTemplate,
+  LlmOptions,
   LlmWrapper,
   ParsedBlock,
   PlaceholderParser,
@@ -37,6 +38,7 @@ const getResponseFromLlm = async (
   session: ChatSessionWithTemplate,
   block: ParsedBlock,
   llmWrapper: LlmWrapper,
+  llmOptions: LlmOptions | undefined,
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
   chatStore: ChatHistoryStore
@@ -74,9 +76,9 @@ const getResponseFromLlm = async (
 
   // call the llm
   const response = await llmWrapper(allMessages, {
-    maxTokens: block.maxTokens,
-    model: block.model,
-    temperature: block.temperature,
+    maxTokens: llmOptions?.maxTokens ?? block.maxTokens,
+    model: llmOptions?.model ?? block.model,
+    temperature: llmOptions?.temperature ?? block.temperature,
     outputType: block.outputType,
   });
   allMessages.push({ role: "assistant", content: response });
@@ -98,6 +100,7 @@ const executeFunction = async (
   session: ChatSessionWithTemplate,
   functionName: string,
   llmWrapper: LlmWrapper,
+  llmOptions: LlmOptions | undefined,
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
   chatStore: ChatHistoryStore
@@ -109,6 +112,7 @@ const executeFunction = async (
       session,
       func,
       llmWrapper,
+      llmOptions,
       logger,
       placeholderParsers,
       chatStore
@@ -148,6 +152,7 @@ export const blockLoop = async (
   userMessage: string | undefined,
   trigger: UserTrigger | undefined,
   usersVariables: VariableDictionary | undefined,
+  llmOptions: LlmOptions | undefined,
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
   loopLimit: number,
@@ -275,6 +280,7 @@ export const blockLoop = async (
           session,
           funcName,
           llmWrapper,
+          llmOptions,
           logger,
           placeholderParsers,
           chatStore
@@ -289,6 +295,7 @@ export const blockLoop = async (
       session,
       block,
       llmWrapper,
+      llmOptions,
       logger,
       placeholderParsers,
       chatStore
@@ -321,6 +328,7 @@ export const blockLoop = async (
           session,
           funcName,
           llmWrapper,
+          llmOptions,
           logger,
           placeholderParsers,
           chatStore
@@ -449,6 +457,7 @@ export async function initChatFromUi(
     data.userMessage,
     data.trigger,
     data.usersVariables,
+    data.llmOptions,
     logger,
     placeholderParsers,
     loopLimit,

@@ -234,6 +234,12 @@ export type UserTrigger = {
 /**
  * Chat
  */
+export interface LlmOptions {
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+}
+
 export type UserChatQuery = {
   chatId?: string;
   userId?: string;
@@ -241,6 +247,7 @@ export type UserChatQuery = {
   template?: ParsedTemplateBlocks;
   trigger?: UserTrigger;
   usersVariables?: VariableDictionary;
+  llmOptions?: LlmOptions;
 };
 
 export type UserChatResponse = {
@@ -253,6 +260,7 @@ export type UserChatResponse = {
   finished?: boolean;
   variables?: VariableDictionaryInMemory;
   possibleTriggers?: string[];
+  llmOptions?: LlmOptions;
 };
 
 export type TemplateChatLogger = {
