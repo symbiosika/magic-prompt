@@ -73,7 +73,12 @@ const getResponseFromLlm = async (
   );
 
   // call the llm
-  const response = await llmWrapper(allMessages, block.maxTokens);
+  const response = await llmWrapper(allMessages, {
+    maxTokens: block.maxTokens,
+    model: block.model,
+    temperature: block.temperature,
+    outputType: block.outputType,
+  });
   allMessages.push({ role: "assistant", content: response });
 
   // save all messages to actualChat

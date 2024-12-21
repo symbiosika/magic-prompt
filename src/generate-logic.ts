@@ -83,6 +83,13 @@ const parseSetter = (block: BlockWithMessages): ParsedBlock["setter"] => {
   };
 };
 
+// Helper to parse LLM return type
+const parseOutputType = (value: any): "text" | "json" => {
+  if (isEffectivelyUndefined(value)) return "text";
+  if (value === "json") return "json";
+  return "text";
+};
+
 /**
  * Parse a block and parse all its arguments
  * {{#block
@@ -120,6 +127,9 @@ const parseBlock = (block: BlockWithMessages): ParsedBlock => {
     clearOnStart: parseBoolean(args.clear_on_start),
     clearOnEnd: parseBoolean(args.clear_on_end),
     maxTokens: parseNumber(args.max_tokens),
+    outputType: parseOutputType(args.output_type),
+    model: args.model ? String(args.model) : undefined,
+    temperature: parseNumber(args.temperature),
     outputVariable: isEffectivelyUndefined(args.output)
       ? undefined
       : String(args.output),

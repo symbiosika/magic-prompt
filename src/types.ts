@@ -171,7 +171,15 @@ export type ParsedBlock = {
   /**
    * The maximum number of tokens the LLM should use
    */
+
+  /**
+   * Some LLM options
+   */
+  outputType?: "text" | "json";
+  model?: string;
+  temperature?: number;
   maxTokens?: number;
+
   /**
    * A block can have ONE output variable and ONE memory variable
    * The output is always a string
@@ -255,7 +263,16 @@ export type TemplateChatLogger = {
 
 export type LlmWrapper = (
   messages: ChatMessage[],
-  maxTokens?: number
+  options?: {
+    outputType?: "text" | "json";
+    model?: string;
+    maxTokens?: number;
+    temperature?: number;
+    n?: number;
+    presencePenalty?: number;
+    frequencyPenalty?: number;
+    stop?: string[] | string;
+  }
 ) => Promise<string>;
 
 export type ChatMessage = {
