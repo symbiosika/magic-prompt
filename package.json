@@ -9,9 +9,9 @@
     "clean": "rm -rf ./lib/",
     "chat": "bun run src/cli-chat.ts",
     "prepublishOnly": "npm run clean && npm run build",
-    "release-patch": "npm version patch && git push --follow-tags",
-    "release-minor": "npm version minor && git push --follow-tags",
-    "release-major": "npm version major && git push --follow-tags"
+    "release:patch": "npm version patch && git push --follow-tags",
+    "release:minor": "npm version minor && git push --follow-tags",
+    "release:major": "npm version major && git push --follow-tags"
   },
   "repository": {
     "type": "git",
