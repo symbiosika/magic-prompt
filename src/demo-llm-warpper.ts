@@ -7,15 +7,17 @@ const openai = new OpenAI({
 
 export const getResponseFromOpenAi: LlmWrapper = async (
   messages: ChatMessage[],
+  logger?: TemplateChatLogger,
   options?: {
     maxTokens?: number;
     model?: string;
     temperature?: number;
     outputType?: "text" | "json";
-  },
-  logger?: TemplateChatLogger
+  }
 ): Promise<string> => {
   await logger?.debug?.("magic-prompt: LLM call", messages);
+  await logger?.debug?.("magic-prompt: LLM options", options);
+
   const completion = await openai.chat.completions.create({
     messages: messages as any,
     model: options?.model ?? "gpt-4-turbo",

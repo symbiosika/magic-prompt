@@ -271,6 +271,7 @@ export type TemplateChatLogger = {
 
 export type LlmWrapper = (
   messages: ChatMessage[],
+  logger: TemplateChatLogger | undefined,
   options?: {
     outputType?: "text" | "json";
     model?: string;

@@ -75,7 +75,7 @@ const getResponseFromLlm = async (
   );
 
   // call the llm
-  const response = await llmWrapper(allMessages, {
+  const response = await llmWrapper(allMessages, logger, {
     maxTokens: llmOptions?.maxTokens ?? block.maxTokens,
     model: llmOptions?.model ?? block.model,
     temperature: llmOptions?.temperature ?? block.temperature,

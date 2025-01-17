@@ -92,6 +92,10 @@ async function startChat() {
       template: template2, //: undefined, // template
       chatId: id,
       userMessage: initialUserInput,
+      llmOptions: {
+        model: "gpt-4o",
+        maxTokens: 100,
+      },
     });
 
     let chatId = chatResponse.chatId;
