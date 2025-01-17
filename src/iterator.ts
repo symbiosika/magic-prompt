@@ -73,9 +73,11 @@ const getResponseFromLlm = async (
     "magic-prompt: messages",
     allMessages.map((m) => `${m.role}: "${m.content.slice(0, 30)}..."`)
   );
+  await logger?.debug?.("magic-prompt: options", JSON.stringify(llmOptions));
 
   // call the llm
   const response = await llmWrapper(allMessages, logger, {
+    ...llmOptions,
     maxTokens: llmOptions?.maxTokens ?? block.maxTokens,
     model: llmOptions?.model ?? block.model,
     temperature: llmOptions?.temperature ?? block.temperature,
