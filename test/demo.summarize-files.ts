@@ -191,7 +191,6 @@ export const demoPlaceholderParsers: PlaceholderParser[] = [
     userMessage: "",
     llmOptions: {
       model: "gpt-4-turbo",
-      maxTokens: 300,
     },
   });
 
@@ -200,4 +199,6 @@ export const demoPlaceholderParsers: PlaceholderParser[] = [
     "test/textes/facts_summary.txt",
     chatResponse.result.message.content
   );
+
+  process.exit(0);
 })();
