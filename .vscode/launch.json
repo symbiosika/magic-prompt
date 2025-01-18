@@ -51,9 +51,9 @@
     {
       "type": "bun",
       "request": "launch",
-      "name": "Launch demo.summarize-files.test.ts",
+      "name": "Launch demo.summarize-files.ts",
       // The path to a JavaScript or TypeScript file to run.
-      "program": "${workspaceFolder}/test/demo.summarize-files.test.ts",
+      "program": "${workspaceFolder}/test/demo.summarize-files.ts",
       // The arguments to pass to the program, if any.
       "args": [],
       // The working directory of the program.
