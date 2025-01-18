@@ -1,0 +1,78 @@
+{
+  "blocks": [
+    {
+      "name": "extract_facts",
+      "next": "extract_facts",
+      "allowManualSkip": true,
+      "maxTokens": 300,
+      "outputType": "text",
+      "outputVariable": "last_fact",
+      "memoryVariable": "extracted_facts",
+      "messages": [
+        {
+          "role": "system",
+          "content": "{{#init x=99}}\nDu bist ein Assistent der einen Text mit Fakten bekommt.\nDu wirst alle Fakten sauber und neutral extrahieren und als neutralen Text zurückgeben.\nFormat:\n- Fakt 1: ...\n- Fakt 2: ...\n- Fakt 3: ...\n- ...\nEs gibt keine Überschrift etc. Keine weiteren Informationen oder Formatierungen oder Kommentare.",
+          "variables": {},
+          "placeholders": [],
+          "setters": []
+        },
+        {
+          "role": "user",
+          "content": "{{#file_content}}",
+          "variables": {},
+          "placeholders": [
+            {
+              "type": "file_content",
+              "fullMatch": "{{#file_content}}",
+              "arguments": []
+            }
+          ],
+          "setters": []
+        }
+      ]
+    },
+    {
+      "name": "aggregate_facts",
+      "next": "aggregate_facts",
+      "allowManualSkip": true,
+      "clearOnStart": true,
+      "maxTokens": 4000,
+      "outputType": "text",
+      "outputVariable": "facts_summary",
+      "memoryVariable": "facts_summary_memory",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Du bist ein Assistent Wissen aggregiert.\nDu bekommt einen Quelltext mit Fakten.\nAußerdem hast du einen aktuellen Stand mit Fakten.\nDu ergänzt diese mit dem Quellwissen.\n\n- Neues Wissen wird hinzugefügt.\n- Altes Wissen bleibt vorhanden oder wird ergänzt.\n- Wenn sich Fakten widersprechen, wird das neue Wissen beibehalten.\n- Wenn sich Fakten nicht widersprechen, wird das neue Wissen hinzugefügt.\n\nDu wirst alle Fakten sauber und neutral extrahieren und als neutralen Text zurückgeben.\nFormat:\n- Fakt 1: ...\n- Fakt 2: ...\n- Fakt 3: ...\n- ...\nEs gibt keine Überschrift etc. Keine weiteren Informationen oder Formatierungen oder Kommentare.",
+          "variables": {},
+          "placeholders": [],
+          "setters": []
+        },
+        {
+          "role": "user",
+          "content": "Aktueller Stand:\n{{facts_summary}}\n\nNeue Fakten zum aggregieren:\n{{#memory_value name=extracted_facts}}",
+          "variables": {
+            "facts_summary": true
+          },
+          "placeholders": [
+            {
+              "type": "memory_value",
+              "fullMatch": "{{#memory_value name=extracted_facts}}",
+              "arguments": [
+                {
+                  "name": "name",
+                  "value": "extracted_facts",
+                  "required": false,
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "setters": []
+        }
+      ]
+    }
+  ],
+  "functions": {},
+  "errors": []
+}

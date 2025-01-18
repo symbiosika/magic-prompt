@@ -175,7 +175,13 @@ export const demoPlaceholderParsers: PlaceholderParser[] = [
 
 (async () => {
   console.log("Starting chat...");
-  const parsedTemplate = await parseTemplate(chatTemplate);
+  const parsedTemplate = await parseTemplate(chatTemplate, {
+    placeholderParsers: demoPlaceholderParsers,
+  });
+  await fsPromises.writeFile(
+    "test/demo.summarize-files.parsed-template.json",
+    JSON.stringify(parsedTemplate, null, 2)
+  );
   const templateChat = new TemplateChat({
     singleLineParsers: standardSingleLineParsers,
     placeholderParsers: demoPlaceholderParsers,

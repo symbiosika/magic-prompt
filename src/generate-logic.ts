@@ -7,8 +7,10 @@ import {
   ParsedTemplateBlocks,
   PlaceholderParser,
   BlockParser,
+  ParsedMessage,
 } from "./types";
 import { parseTemplateRaw } from "./generate-raw-blocks";
+import { parseArgumentsWithoutLimits } from "./parse-arguments";
 
 // Helper function to check if a value is effectively undefined
 const isEffectivelyUndefined = (value: any): boolean => {
@@ -171,11 +173,43 @@ const parseFunction = (func: BlockWithMessages): ParsedFunction => {
   return parsedFunction;
 };
 
+// Function to extract placeholders from messages
+const extractPlaceholders = (
+  messages: ParsedMessage[],
+  parsers: PlaceholderParser[]
+): void => {
+  for (const message of messages) {
+    for (const parser of parsers) {
+      if (!parser.expression) {
+        parser.expression = new RegExp(`{{#${parser.name}([^}]*?)}}`, "g");
+      }
+
+      const matches = message.content?.match(parser.expression);
+      if (matches) {
+        for (const match of matches) {
+          const args = parseArgumentsWithoutLimits(match, parser.name);
+          message.placeholders.push({
+            type: parser.name,
+            fullMatch: match,
+            arguments: Object.entries(args).map(([name, value]) => ({
+              name,
+              value,
+              required: parser.requiredArguments?.includes(name) || false,
+              type: typeof value as "string" | "number" | "boolean",
+            })),
+          });
+        }
+      }
+    }
+  }
+};
+
 /**
  * Main function to parse the JSON template
  */
 export const parseTemplateToBlocks = (
-  template: ParsedTemplate
+  template: ParsedTemplate,
+  parsers: PlaceholderParser[]
 ): ParsedTemplateBlocks => {
   const errors: string[] = [...template.errors];
   const blocks: ParsedBlock[] = [];
@@ -185,6 +219,7 @@ export const parseTemplateToBlocks = (
   if (template.blocks) {
     for (const block of template.blocks) {
       try {
+        extractPlaceholders(block.messages, parsers);
         if (block.type === "callback") {
           // Create a minimal block for callbacks
           blocks.push({
@@ -215,6 +250,7 @@ export const parseTemplateToBlocks = (
   if (template.functions) {
     for (const func of template.functions) {
       try {
+        extractPlaceholders(func.messages, parsers);
         const parsedFunction = parseFunction(func);
         functions[parsedFunction.name] = parsedFunction;
       } catch (error) {
@@ -286,7 +322,10 @@ export const parseTemplate = async (
   }
 ): Promise<ParsedTemplateBlocks> => {
   const rawTemplate = await parseTemplateRaw(template, options);
-  const parsedTemplate = parseTemplateToBlocks(rawTemplate);
+  const parsedTemplate = parseTemplateToBlocks(
+    rawTemplate,
+    options?.placeholderParsers || []
+  );
 
   return parsedTemplate;
 };
