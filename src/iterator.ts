@@ -444,7 +444,7 @@ export async function initChatFromUi(
         placeholderParsers,
       }
     );
-    const blocks = parseTemplateToBlocks(jsonTemplate);
+    const blocks = parseTemplateToBlocks(jsonTemplate); // placeholderParsers are not used here
     session = await chatStore.create({
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
       useTemplate: blocks,

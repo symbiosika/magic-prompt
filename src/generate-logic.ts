@@ -209,7 +209,7 @@ const extractPlaceholders = (
  */
 export const parseTemplateToBlocks = (
   template: ParsedTemplate,
-  parsers: PlaceholderParser[]
+  parsers?: PlaceholderParser[]
 ): ParsedTemplateBlocks => {
   const errors: string[] = [...template.errors];
   const blocks: ParsedBlock[] = [];
@@ -219,7 +219,9 @@ export const parseTemplateToBlocks = (
   if (template.blocks) {
     for (const block of template.blocks) {
       try {
-        extractPlaceholders(block.messages, parsers);
+        if (parsers) {
+          extractPlaceholders(block.messages, parsers);
+        }
         if (block.type === "callback") {
           // Create a minimal block for callbacks
           blocks.push({
@@ -250,7 +252,9 @@ export const parseTemplateToBlocks = (
   if (template.functions) {
     for (const func of template.functions) {
       try {
-        extractPlaceholders(func.messages, parsers);
+        if (parsers) {
+          extractPlaceholders(func.messages, parsers);
+        }
         const parsedFunction = parseFunction(func);
         functions[parsedFunction.name] = parsedFunction;
       } catch (error) {
