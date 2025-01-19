@@ -86,8 +86,12 @@ const getResponseFromLlm = async (
   allMessages.push({ role: "assistant", content: response });
 
   // save all messages to actualChat
-  await chatStore.set(session.id, { appendToHistory: replacedBlockMessages });
-  await chatStore.set(session.id, { actualChat: allMessages });
+  await chatStore.set(
+    session.id,
+    { appendToHistory: replacedBlockMessages },
+    session
+  );
+  await chatStore.set(session.id, { actualChat: allMessages }, session);
 
   await logger?.debug?.("magic-prompt: LLM response", response);
   return {
@@ -129,9 +133,19 @@ const executeFunction = async (
       response,
       `Set variable ${func.outputVariable} with value`
     );
-    await chatStore.setVariable(session.id, func.outputVariable, response);
+    await chatStore.setVariable(
+      session.id,
+      func.outputVariable,
+      response,
+      session
+    );
     if (func.memoryVariable) {
-      await chatStore.appendToMemory(session.id, func.memoryVariable, response);
+      await chatStore.appendToMemory(
+        session.id,
+        func.memoryVariable,
+        response,
+        session
+      );
       await logger?.debug?.(
         `magic-prompt: Actual memory state for ${func.memoryVariable}`,
         session.state.variables[func.memoryVariable]
@@ -166,13 +180,15 @@ export const blockLoop = async (
   // merge the sessions variables with the users variables
   session.state.variables = await chatStore.mergeVariables(
     chatId,
-    usersVariables ?? {}
+    usersVariables ?? {},
+    session
   );
   if (userMessage) {
     session.state.variables = await chatStore.setVariable(
       chatId,
       "user_input",
-      userMessage
+      userMessage,
+      session
     );
   }
 
@@ -192,7 +208,7 @@ export const blockLoop = async (
   let cnt = 0;
   for (let x = inProgressTemplate; x < template.blocks.length; null) {
     // set state
-    await chatStore.set(chatId, { blockIndex: x });
+    await chatStore.set(chatId, { blockIndex: x }, session);
     await logger?.debug?.(`magic-prompt: Set blockIndex to ${x}`);
     cnt++;
     if (cnt > loopLimit) {
@@ -211,7 +227,7 @@ export const blockLoop = async (
         "magic-prompt: Set variables",
         block.setter.variables
       );
-      await chatStore.mergeVariables(chatId, block.setter.variables);
+      await chatStore.mergeVariables(chatId, block.setter.variables, session);
       x++;
       continue;
     }
@@ -222,7 +238,7 @@ export const blockLoop = async (
     if (block.callback) {
       await logger?.debug?.("magic-prompt: triggered a callback");
       // set the pointer to the next block!
-      await chatStore.set(chatId, { blockIndex: x + 1 });
+      await chatStore.set(chatId, { blockIndex: x + 1 }, session);
 
       const variablesToReturn: VariableDictionaryInMemory = {};
       if (block.callback.returnVariables) {
@@ -268,7 +284,7 @@ export const blockLoop = async (
      */
     // clear actual chat if wanted
     if (block.clearOnStart) {
-      await chatStore.set(chatId, { actualChat: [] });
+      await chatStore.set(chatId, { actualChat: [] }, session);
     }
 
     // execute functions on start
@@ -309,10 +325,20 @@ export const blockLoop = async (
     }
     // set output variables in state
     if (block.outputVariable) {
-      await chatStore.setVariable(chatId, block.outputVariable, response);
+      await chatStore.setVariable(
+        chatId,
+        block.outputVariable,
+        response,
+        session
+      );
     }
     if (block.memoryVariable) {
-      await chatStore.appendToMemory(chatId, block.memoryVariable, response);
+      await chatStore.appendToMemory(
+        chatId,
+        block.memoryVariable,
+        response,
+        session
+      );
     }
     lastResponse = response;
 
@@ -340,7 +366,7 @@ export const blockLoop = async (
 
     // clear the history if wanted
     if (block.clearOnEnd) {
-      await chatStore.set(chatId, { actualChat: [] });
+      await chatStore.set(chatId, { actualChat: [] }, session);
     }
 
     // What to do next?
