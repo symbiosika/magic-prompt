@@ -248,6 +248,7 @@ export type UserChatQuery = {
   trigger?: UserTrigger;
   usersVariables?: VariableDictionary;
   llmOptions?: LlmOptions;
+  meta?: any; // additional data for the chat to store
 };
 
 export type UserChatResponse = {

@@ -465,6 +465,7 @@ export async function initChatFromUi(
       useTemplate: data.template,
       userId: data.userId,
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
+      meta: data.meta,
     });
     await logger?.debug?.(
       `magic-prompt: New session created with id ${session.id}`
@@ -484,6 +485,7 @@ export async function initChatFromUi(
       chatId: data.chatId && data.chatId.length > 0 ? data.chatId : undefined,
       useTemplate: blocks,
       userId: data.userId,
+      meta: data.meta,
     });
   }
 
