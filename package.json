@@ -1,6 +1,6 @@
 {
   "name": "magic-prompt",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "The simple LLM scripting library to create complex Chat chains for your users",
   "main": "./lib/index.js",
   "scripts": {
