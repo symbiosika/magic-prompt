@@ -86,10 +86,16 @@ const getResponseFromLlm = async (
   allMessages.push({ role: "assistant", content: response });
 
   // save all messages to actualChat
+  await logger?.debug?.(
+    `magic-prompt: Append ${replacedBlockMessages.length} messages for block ${block.name} `
+  );
   await chatStore.set(
     session.id,
     { appendToHistory: replacedBlockMessages },
     session
+  );
+  await logger?.debug?.(
+    `magic-prompt: Save ${allMessages.length} messages for block ${block.name}`
   );
   await chatStore.set(session.id, { actualChat: allMessages }, session);
 
@@ -366,6 +372,9 @@ export const blockLoop = async (
 
     // clear the history if wanted
     if (block.clearOnEnd) {
+      await logger?.debug?.(
+        `magic-prompt: Clear actualChat for block ${block.name}`
+      );
       await chatStore.set(chatId, { actualChat: [] }, session);
     }
 

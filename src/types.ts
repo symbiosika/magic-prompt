@@ -323,6 +323,7 @@ export interface ChatHistoryStore {
     chatId?: string;
     useTemplate?: ParsedTemplateBlocks;
     userId?: string;
+    meta?: any;
   }): Promise<ChatSession>;
 
   get(chatId: string): Promise<ChatSession | null>;
@@ -367,7 +368,8 @@ export interface ChatHistoryStore {
 
   getHistoryByUserId(
     userId: string,
-    startFrom: string
+    startFrom: string,
+    meta?: any
   ): Promise<
     {
       chatId: string;
