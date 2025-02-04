@@ -2,6 +2,7 @@ import {
   ChatMessage,
   PlaceholderParser,
   TemplateChatLogger,
+  UserChatMeta,
   VariableDictionaryInMemory,
 } from "./types";
 import { parseArgumentsWithoutLimits } from "./parse-arguments";
@@ -53,6 +54,7 @@ export const replaceCustomPlaceholders = async (
   messages: ChatMessage[],
   parsers: PlaceholderParser[],
   variables: VariableDictionaryInMemory,
+  meta: UserChatMeta,
   logger?: TemplateChatLogger
 ) => {
   const replacedMessages: ChatMessage[] = [];
@@ -79,7 +81,8 @@ export const replaceCustomPlaceholders = async (
           const replacement = await parser.replacerFunction(
             match,
             args,
-            variables
+            variables,
+            meta
           );
           skipThisBlock = replacement.skipThisBlock ?? false;
           replacedMessage.content = replacedMessage.content.replace(

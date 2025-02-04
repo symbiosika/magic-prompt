@@ -84,7 +84,8 @@ export type PlaceholderParser = {
   replacerFunction: (
     match: string,
     args: PlaceholderArgumentDict,
-    variables: VariableDictionaryInMemory
+    variables: VariableDictionaryInMemory,
+    meta: UserChatMeta
   ) => Promise<{
     content: string;
     skipThisBlock?: boolean;
@@ -240,6 +241,8 @@ export interface LlmOptions {
   temperature?: number;
 }
 
+export type UserChatMeta = Record<string, string | number | boolean>;
+
 export type UserChatQuery = {
   chatId?: string;
   userId?: string;
@@ -248,7 +251,7 @@ export type UserChatQuery = {
   trigger?: UserTrigger;
   usersVariables?: VariableDictionary;
   llmOptions?: LlmOptions;
-  meta?: any; // additional data for the chat to store
+  meta?: UserChatMeta; // additional data for the chat to store
 };
 
 export type UserChatResponse = {

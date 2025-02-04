@@ -6,6 +6,7 @@ import {
   ParsedBlock,
   PlaceholderParser,
   TemplateChatLogger,
+  UserChatMeta,
   UserChatQuery,
   UserChatResponse,
   UserTrigger,
@@ -41,7 +42,8 @@ const getResponseFromLlm = async (
   llmOptions: LlmOptions | undefined,
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
-  chatStore: ChatHistoryStore
+  chatStore: ChatHistoryStore,
+  meta: UserChatMeta
 ): Promise<{
   content: string;
   skipThisBlock?: boolean;
@@ -57,6 +59,7 @@ const getResponseFromLlm = async (
       replacedBlockMessagesStep1,
       placeholderParsers,
       session.state.variables,
+      meta,
       logger
     );
 
@@ -115,7 +118,8 @@ const executeFunction = async (
   llmOptions: LlmOptions | undefined,
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
-  chatStore: ChatHistoryStore
+  chatStore: ChatHistoryStore,
+  meta: UserChatMeta
 ) => {
   const func = session.state.useTemplate.def.functions[functionName];
   if (func) {
@@ -127,7 +131,8 @@ const executeFunction = async (
       llmOptions,
       logger,
       placeholderParsers,
-      chatStore
+      chatStore,
+      meta
     );
 
     if (skipThisBlock) {
@@ -178,7 +183,8 @@ export const blockLoop = async (
   logger: TemplateChatLogger | undefined,
   placeholderParsers: PlaceholderParser[],
   loopLimit: number,
-  chatStore: ChatHistoryStore
+  chatStore: ChatHistoryStore,
+  meta: UserChatMeta
 ) => {
   const chatId = session.id;
   const template = session.state.useTemplate.def;
@@ -307,7 +313,8 @@ export const blockLoop = async (
           llmOptions,
           logger,
           placeholderParsers,
-          chatStore
+          chatStore,
+          meta
         );
       }
     }
@@ -322,10 +329,12 @@ export const blockLoop = async (
       llmOptions,
       logger,
       placeholderParsers,
-      chatStore
+      chatStore,
+      meta
     );
     if (skipThisBlock) {
       x++;
+
       await logger?.debug?.(`Skipping block was forced`);
       continue;
     }
@@ -365,7 +374,8 @@ export const blockLoop = async (
           llmOptions,
           logger,
           placeholderParsers,
-          chatStore
+          chatStore,
+          meta
         );
       }
     }
@@ -500,7 +510,8 @@ export async function initChatFromUi(
     logger,
     placeholderParsers,
     loopLimit,
-    chatStore
+    chatStore,
+    data.meta ?? {}
   );
 
   return { chatId: session.id, result };
